@@ -1,4 +1,4 @@
-# Framework Developement Guide
+# Framework Development Guide
 
 ## Depencencies
 
@@ -114,3 +114,21 @@ Now, you can run `AATHTest` in Xcode. `AATHTest` awaits for 20 min acting as a B
 # Run javascript agent as Alice and AATHTest as Bob for T003-RFC0036
 $ LEDGER_URL_CONFIG=http://test.bcovrin.vonx.io TAILS_SERVER_URL_CONFIG=https://tails.vonx.io ./manage run -a javascript -b local -t @T003-RFC0036
 ```
+
+### Testing using the sample app
+
+You can test the sample app with modified AriesFramework by changing the Podfile and podspec file.
+
+Change Sample/Podfile:
+```diff
+-  pod 'AriesFramework', '~> 1.0'
++  pod 'AriesFramework', :path => '../AriesFramework.podspec'
+```
+
+Change AriesFramework.podspec:
+```diff
+-  spec.source       = { :git => "https://github.com/naver/aries-framework-swift.git", :tag => 'v1.0.0' }
++  spec.source       = { :git => "" }
+```
+
+Then, run `pod install` in `Sample` directory. AriesFramework will be included as `Development Pods` in the sample app's Pods and the changes in the AriesFramework is applied automatically.

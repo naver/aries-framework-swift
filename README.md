@@ -41,7 +41,7 @@ Building on Apple silicon Mac is not supported yet.
 
 ## Usage
 
-App developement using Aries Framework Swift is done in following steps:
+App development using Aries Framework Swift is done in following steps:
 1. Create an Agent instance
 2. Create a connection with another agent by receiving a connection invitation
 3. Receive credentials or proof requests by implementing a AgentDelegate
@@ -165,7 +165,7 @@ There are two genesis files in the `resources` directory.
 
 ## Contributing
 
-We welcome contributions to Aries Framework Swift. Please see our [Developer Guide](DEVELOPEMENT.md) for more information.
+We welcome contributions to Aries Framework Swift. Please see our [Developer Guide](DEVELOP.md) for more information.
 
 ## License
 
