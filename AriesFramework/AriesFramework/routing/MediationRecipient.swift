@@ -31,7 +31,7 @@ class MediationRecipient {
             throw AriesFrameworkError.frameworkError("Invalid mediation invitation. Invitation must have at least one recipient key.")
         }
 
-        if let connection = try await agent.connectionService.findByInvitationKey(recipientKey) {
+        if let connection = try await agent.connectionService.findByInvitationKey(recipientKey), connection.isReady() {
             try await requestMediationIfNecessry(connection: connection)
         } else {
             let invitationConnectionRecord = try await agent.connectionService.processInvitation(invitation, routing: self.getRouting(), autoAcceptConnection: true)
@@ -108,7 +108,7 @@ class MediationRecipient {
         let routingKeys = mediator?.routingKeys ?? []
 
         let (did, verkey) = try await agent.wallet.createDid()
-        if mediator != nil {
+        if mediator != nil && mediator!.isReady() {
             try await keylistUpdate(mediator: mediator!, verkey: verkey)
         }
 
