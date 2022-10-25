@@ -147,6 +147,22 @@ Another way to handle those requests is to implement your own `MessageHandler` c
 
 For your information, Aries Framework Swift refers to [Aries Framework JavaScript](https://github.com/hyperledger/aries-framework-javascript) a lot, so the class name and API are almost the same.
 
+## Sample App
+
+`Sample` directory contains an iOS sample app that demonstrates how to use Aries Framework Swift. The app receives a connection invitation from a QR code or from a URL input and handles credential offers and proof requests.
+
+To run the sample app, first install the dependencies using CocoaPods.
+```bash
+$ cd Sample
+$ pod install
+```
+
+Then open `wallet-app-ios.xcworkspace` and run the app. The agent is created in the `WalletOpener.swift` file and you can set a mediator connection invitation url there, if you want.
+
+There are two genesis files in the `resources` directory.
+- `bcovrin-genesis.txn` is for the [GreenLight Dev Ledger](http://dev.greenlight.bcovrin.vonx.io/)
+- `local-genesis.txn` is for the local indy-pool.
+
 ## Contributing
 
 We welcome contributions to Aries Framework Swift. Please see our [Developer Guide](DEVELOPEMENT.md) for more information.

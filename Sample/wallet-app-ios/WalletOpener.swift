@@ -30,7 +30,8 @@ class WalletOpener : ObservableObject {
             }
         }
 
-        let invitationUrl = "http://localhost:3001/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJlZDM1YzRlZS1hZjA2LTQ4M2ItOGEyZC1jMGY5YTk4ZTZjYTEiLCJsYWJlbCI6IkFyaWVzIEZyYW1ld29yayBKYXZhU2NyaXB0IE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyI2cDlKc0xCRlRveW5wRDR0a3RpU3VEQ0hETUVQd0FWUndmRGZSRWVnZUVDMSJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwOi8vbG9jYWxob3N0OjMwMDEiLCJyb3V0aW5nS2V5cyI6W119"
+//        let invitationUrl = "http://localhost:3001/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJlZDM1YzRlZS1hZjA2LTQ4M2ItOGEyZC1jMGY5YTk4ZTZjYTEiLCJsYWJlbCI6IkFyaWVzIEZyYW1ld29yayBKYXZhU2NyaXB0IE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyI2cDlKc0xCRlRveW5wRDR0a3RpU3VEQ0hETUVQd0FWUndmRGZSRWVnZUVDMSJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwOi8vbG9jYWxob3N0OjMwMDEiLCJyb3V0aW5nS2V5cyI6W119"
+        let invitationUrl: String? = nil
         let genesisPath = Bundle(for: WalletOpener.self).path(forResource: "bcovrin-genesis", ofType: "txn")
         let config = AgentConfig(walletKey: key!,
             genesisPath: genesisPath!,
