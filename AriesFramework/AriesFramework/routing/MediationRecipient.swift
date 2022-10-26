@@ -191,7 +191,9 @@ class MediationRecipient {
         keylistUpdateDone = false
         try await agent.messageSender.send(message: message)
         if (!keylistUpdateDone) {
-            throw AriesFrameworkError.frameworkError("Keylist update not finished")
+            // This is not guaranteed when the outbound transport is WebSocket.
+            // throw AriesFrameworkError.frameworkError("Keylist update not finished")
+            logger.warning("Keylist update not finished")
         }
     }
 }
