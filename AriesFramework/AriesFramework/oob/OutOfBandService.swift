@@ -4,6 +4,7 @@ import Foundation
 public class OutOfBandService {
     let agent: Agent
     let outOfBandRepository: OutOfBandRepository
+    let handshakeReuseWaiter = DispatchSemaphore(value: 1)
 
     init(agent: Agent) {
         self.agent = agent
@@ -51,7 +52,7 @@ public class OutOfBandService {
         if (outOfBandRecord.reuseConnectionId != reusedConnection.id) {
             throw AriesFrameworkError.frameworkError("handshake-reuse-accepted is not in response to a handshake-reuse message.")
         }
-        
+
         try await updateState(outOfBandRecord: outOfBandRecord, newState: OutOfBandState.Done)
     }
 
@@ -73,6 +74,9 @@ public class OutOfBandService {
         var updateRecord = outOfBandRecord
         updateRecord.state = newState
         try await outOfBandRepository.update(updateRecord)
+        if (newState == OutOfBandState.Done) {
+            notifyHandshakeReuseWaiter()
+        }
 
         agent.agentDelegate?.onOutOfBandStateChanged(outOfBandRecord: updateRecord)
     }
@@ -100,5 +104,14 @@ public class OutOfBandService {
     public func deleteById(_ outOfBandId: String) async throws {
         let outOfBandRecord = try await getById(outOfBandId)
         try await outOfBandRepository.delete(outOfBandRecord)
+    }
+
+    func waitForHandshakeReuse(timeout: Double = 20) async -> Bool {
+        let result = handshakeReuseWaiter.wait(timeout: .now() + timeout)
+        return result == .success
+    }
+
+    private func notifyHandshakeReuseWaiter() {
+        handshakeReuseWaiter.signal()
     }
 }

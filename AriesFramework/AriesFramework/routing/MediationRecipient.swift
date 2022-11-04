@@ -167,7 +167,7 @@ class MediationRecipient {
         logger.debug("Get \(message.messages.count) batch messages")
         let forwardedMessages = message.messages
         for forwardedMessage in forwardedMessages {
-            try await agent.messageReceiver.receiveMessage(forwardedMessage.message)
+            try await agent.receiveMessage(forwardedMessage.message)
         }
     }
 

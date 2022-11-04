@@ -52,18 +52,24 @@ public class ConnectionCommand {
      request message will be send.
 
      - Parameters:
-        - invitationJson: json object containing the invitation to receive.
+        - invitation: optional connection invitation message to receive.
+        - outOfBandInvitation: optional out of band invitation message to receive.
         - autoAcceptConnection: whether to auto accept the connection response.
         - alias: alias to use for the connection.
      - Returns: new connection record.
     */
     public func receiveInvitation(
-        _ invitation: ConnectionInvitationMessage,
+        _ invitation: ConnectionInvitationMessage? = nil,
+        outOfBandInvitation: OutOfBandInvitation? = nil,
         autoAcceptConnection: Bool? = nil,
         alias: String? = nil) async throws -> ConnectionRecord {
 
         logger.debug("Receive connection invitation")
-        var connection = try await agent.connectionService.processInvitation(invitation, routing: agent.mediationRecipient.getRouting(), autoAcceptConnection: autoAcceptConnection, alias: alias)
+        var connection = try await agent.connectionService.processInvitation(invitation,
+            outOfBandInvitation: outOfBandInvitation,
+            routing: agent.mediationRecipient.getRouting(),
+            autoAcceptConnection: autoAcceptConnection,
+            alias: alias)
         if (connection.autoAcceptConnection ?? agent.agentConfig.autoAcceptConnections) {
             connection = try await acceptInvitation(connectionId: connection.id, autoAcceptConnection: autoAcceptConnection)
         }
@@ -102,6 +108,17 @@ public class ConnectionCommand {
     public func acceptInvitation(connectionId: String, autoAcceptConnection: Bool?) async throws -> ConnectionRecord {
         logger.debug("Accept connection invitation")
         let message = try await agent.connectionService.createRequest(connectionId: connectionId, autoAcceptConnection: autoAcceptConnection)
+        try await agent.messageSender.send(message: message)
+        return message.connection
+    }
+
+    func acceptOutOfBandInvitation(outOfBandRecord: OutOfBandRecord, config: ReceiveOutOfBandInvitationConfig?) async throws -> ConnectionRecord {
+        let connection = try await receiveInvitation(outOfBandInvitation: outOfBandRecord.outOfBandInvitation,
+            autoAcceptConnection: false, alias: config?.alias)
+        let message = try await agent.connectionService.createRequest(connectionId: connection.id,
+            label: config?.label,
+            imageUrl: config?.imageUrl,
+            autoAcceptConnection: config?.autoAcceptConnection)
         try await agent.messageSender.send(message: message)
         return message.connection
     }

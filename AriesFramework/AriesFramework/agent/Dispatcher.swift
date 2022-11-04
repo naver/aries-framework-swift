@@ -51,6 +51,10 @@ public class Dispatcher {
         return handlers[messageType]
     }
 
+    func canHandleMessage(_ message: AgentMessage) -> Bool {
+        return handlers[message.type] != nil
+    }
+
     static func replaceNewDidCommPrefixWithLegacyDidSov(messageType: String) -> String {
         let didSovPrefix = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec"
         let didCommPrefix = "https://didcomm.org"

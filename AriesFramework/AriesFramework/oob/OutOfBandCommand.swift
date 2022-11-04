@@ -4,30 +4,6 @@ import os
 
 let didCommProfiles = ["didcomm/aip1", "didcomm/aip2;env=rfc19"]
 
-public struct CreateOutOfBandInvitationConfig {
-    public var label: String?
-    public var alias: String?
-    public var imageUrl: String?
-    public var goalCode: String?
-    public var goal: String?
-    public var handshake: Bool?
-    public var handshakeProtocols: [HandshakeProtocol]?
-    public var messages: [AgentMessage]?
-    public var multiUseInvitation: Bool?
-    public var autoAcceptConnection: Bool?
-    public var routing: Routing?
-}
-
-public struct ReceiveOutOfBandInvitationConfig {
-    public var label: String?
-    public var alias: String?
-    public var imageUrl: String?
-    public var autoAcceptInvitation: Bool?
-    public var autoAcceptConnection: Bool?
-    public var reuseConnection: Bool?
-    public var routing: Routing?
-}
-
 public class OutOfBandCommand {
     let agent: Agent
     let logger = Logger(subsystem: "AriesFramework", category: "OutOfBandCommand")
@@ -156,7 +132,7 @@ public class OutOfBandCommand {
         - config: configuration of how out-of-band invitation should be received.
      - Returns: out-of-band record and connection record if one has been created.
     */
-    public func receiveInvitation(invitation: OutOfBandInvitation, config: ReceiveOutOfBandInvitationConfig?) async throws -> OutOfBandRecord {
+    public func receiveInvitation(invitation: OutOfBandInvitation, config: ReceiveOutOfBandInvitationConfig?) async throws -> (OutOfBandRecord, ConnectionRecord?) {
         let autoAcceptInvitation = config?.autoAcceptInvitation ?? true
         let autoAcceptConnection = config?.autoAcceptConnection ?? true
         let reuseConnection = config?.reuseConnection ?? false
@@ -179,6 +155,12 @@ public class OutOfBandCommand {
             )
         }
 
+        if try invitation.fingerprints().isEmpty {
+            throw AriesFrameworkError.frameworkError(
+                "Invitation does not contain any valid service object."
+            )
+        }
+
         let outOfBandRecord = OutOfBandRecord(
             id: OutOfBandRecord.generateId(),
             createdAt: Date(),
@@ -198,18 +180,126 @@ public class OutOfBandCommand {
                 autoAcceptConnection: autoAcceptConnection,
                 reuseConnection: reuseConnection,
                 routing: config?.routing)
-            return try await self.acceptInvitation(outOfBandRecord: outOfBandRecord, config: acceptConfig)
+            return try await self.acceptInvitation(outOfBandId: outOfBandRecord.id, config: acceptConfig)
         }
 
-        return outOfBandRecord
+        return (outOfBandRecord, nil)
     }
 
-    public func acceptInvitation(outOfBandRecord: OutOfBandRecord, config: ReceiveOutOfBandInvitationConfig?) async throws -> OutOfBandRecord {
-        throw AriesFrameworkError.frameworkError(
-            "Method 'acceptInvitation' is not implemented yet."
-        )
+    /**
+     Creates a connection if the out-of-band invitation message contains `handshake_protocols`
+     attribute, except for the case when connection already exists and `reuseConnection` is enabled.
+
+     It passes first supported message from `requests~attach` attribute to the agent, except for the
+     case reuse of connection is applied when it just sends `handshake-reuse` message to existing
+     connection.
+
+     Agent role: receiver (invitee)
+
+     - Parameters:
+        - outOfBandId: out-of-band record id to accept.
+        - config: configuration of how out-of-band invitation should be received.
+     - Returns: out-of-band record and connection record if one has been created.
+    */
+    public func acceptInvitation(outOfBandId: String, config: ReceiveOutOfBandInvitationConfig?) async throws -> (OutOfBandRecord, ConnectionRecord?) {
+        let outOfBandRecord = try await agent.outOfBandService.getById(outOfBandId)
+        let existingConnection = try await findExistingConnection(outOfBandInvitation: outOfBandRecord.outOfBandInvitation)
+
+        try await agent.outOfBandService.updateState(outOfBandRecord: outOfBandRecord, newState: .PrepareResponse)
+
+        let messages = try outOfBandRecord.outOfBandInvitation.getRequests()
+        let handshakeProtocols = outOfBandRecord.outOfBandInvitation.handshakeProtocols ?? []
+        if handshakeProtocols.count > 0 {
+            var connectionRecord: ConnectionRecord?
+            if (existingConnection != nil && config?.reuseConnection ?? true) {
+                if messages.count > 0 {
+                    logger.debug("Skip handshake and reuse existing connection \(existingConnection!.id)")
+                    connectionRecord = existingConnection
+                } else {
+                    let isHandshakeReuseSuccessful = try await handleHandshakeReuse(outOfBandRecord: outOfBandRecord, connectionRecord: existingConnection!)
+                    if (isHandshakeReuseSuccessful) {
+                        connectionRecord = existingConnection
+                    } else {
+                        logger.warning("Handshake reuse failed. Not using existing connection \(existingConnection!.id)")
+                    }
+                }
+            }
+
+            if connectionRecord == nil {
+                logger.debug("Creating new connection")
+                if !handshakeProtocols.contains(.Connections) {
+                    throw AriesFrameworkError.frameworkError(
+                        "Unsupported handshake protocol. Supported protocols: \(handshakeProtocols)"
+                    )
+                }
+
+                connectionRecord = try await agent.connections.acceptOutOfBandInvitation(outOfBandRecord: outOfBandRecord, config: config)
+            }
+
+            if messages.count > 0 {
+                try await processMessages(messages, connectionRecord: connectionRecord!)
+            }
+            return (outOfBandRecord, connectionRecord)
+        } else if messages.count > 0 {
+            logger.debug("Out of band message contains only request messages.")
+            if (existingConnection != nil) {
+                try await processMessages(messages, connectionRecord: existingConnection!)
+            } else {
+                // TODO: send message to the service endpoint
+                throw AriesFrameworkError.frameworkError("Cannot process request messages. No connection found.")
+            }
+        }
+
+        return (outOfBandRecord, nil)
     }
 
+    private func processMessages(_ messages: [String], connectionRecord: ConnectionRecord) async throws {
+        let message = messages.first(where: { message in
+            guard let agentMessage = try? agent.messageReceiver.decodeAgentMessage(plaintextMessage: message) else {
+                logger.warning("Cannot decode agent message: \(message)")
+                return false
+            }
+            return agent.dispatcher.canHandleMessage(agentMessage)
+        })
+
+        if message == nil {
+            throw AriesFrameworkError.frameworkError("There is no message in requests~attach supported by agent.")
+        }
+
+        if try await agent.connectionService.fetchState(connectionRecord: connectionRecord) != .Complete {
+            let result = await agent.connectionService.waitForConnection()
+            if !result {
+                throw AriesFrameworkError.frameworkError("Cannot process the invitation message. Connection timed out.")
+            }
+        }
+
+        try await agent.messageReceiver.receivePlaintextMessage(message!, connection: connectionRecord)
+    }
+
+    private func handleHandshakeReuse(outOfBandRecord: OutOfBandRecord, connectionRecord: ConnectionRecord) async throws -> Bool {
+        let reuseMessage = try await agent.outOfBandService.createHandShakeReuse(outOfBandRecord: outOfBandRecord, connectionRecord: connectionRecord)
+        let message = OutboundMessage(payload: reuseMessage, connection: connectionRecord)
+        try await agent.messageSender.send(message: message)
+
+        if try await agent.outOfBandRepository.getById(outOfBandRecord.id).state != .Done {
+            let result = await agent.outOfBandService.waitForHandshakeReuse()
+            return result
+        }
+
+        return true
+    }
+
+    private func findExistingConnection(outOfBandInvitation: OutOfBandInvitation) async throws -> ConnectionRecord? {
+        guard let invitationKey = try outOfBandInvitation.invitationKey() else {
+            return nil
+        }
+        let connections = try await agent.connectionService.findAllByInvitationKey(invitationKey)
+
+        if (connections.count == 0) {
+            return nil
+        }
+        return connections.first(where: { $0.isReady() })
+    }
 
     private func getSupportedHandshakeProtocols() -> [HandshakeProtocol] {
         return [.Connections]

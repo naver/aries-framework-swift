@@ -34,12 +34,12 @@ extension OutOfBandRecord: Codable {
         tags["invitationId"] = self.outOfBandInvitation.id
         if let fingerprints = try? self.outOfBandInvitation.fingerprints() {
             if fingerprints.count > 0 {
-                tags["recipientKeyFingerprints"] = fingerprints[0]
+                tags["recipientKeyFingerprint"] = fingerprints[0]
             } else {
                 logger.error("OutOfBandInvitation has no recipientKey.")
             }
         } else {
-            logger.error("Cannot get recipientKeyFingerprints.")
+            logger.error("Cannot get recipientKeyFingerprint.")
         }
 
         return tags

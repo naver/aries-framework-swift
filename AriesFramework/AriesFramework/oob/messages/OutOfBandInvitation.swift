@@ -109,4 +109,13 @@ public class OutOfBandInvitation: AgentMessage {
                 return try DIDParser.getMethodId(did: recipientKeys)
             })
     }
+
+    public func invitationKey() throws -> String? {
+        let fingerprints = try self.fingerprints()
+        if fingerprints.count == 0 {
+            return nil
+        }
+
+        return try DIDParser.ConvertFingerprintToVerkey(fingerprint: fingerprints[0])
+    }
 }
