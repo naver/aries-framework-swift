@@ -36,7 +36,6 @@ public class OutOfBandCommand {
     public func createInvitation(config: CreateOutOfBandInvitationConfig) async throws -> OutOfBandRecord {
         let multiUseInvitation = config.multiUseInvitation ?? false
         let handshake = config.handshake ?? true
-        let customHandshakeProtocols = config.handshakeProtocols
         let autoAcceptConnection = config.autoAcceptConnection ?? agent.agentConfig.autoAcceptConnections
         let messages = config.messages ?? []
         let label = config.label ?? agent.agentConfig.label
@@ -48,12 +47,6 @@ public class OutOfBandCommand {
             )
         }
 
-        if (!handshake && customHandshakeProtocols != nil) {
-            throw AriesFrameworkError.frameworkError(
-                "Attribute 'handshake' can not be 'false' when 'handshakeProtocols' is defined."
-            )
-        }
-
         if (!messages.isEmpty && multiUseInvitation) {
             throw AriesFrameworkError.frameworkError(
                 "Attribute 'multiUseInvitation' can not be 'true' when 'messages' is defined."
@@ -62,12 +55,7 @@ public class OutOfBandCommand {
 
         var handshakeProtocols: [HandshakeProtocol]?
         if (handshake) {
-            if (customHandshakeProtocols != nil) {
-                try self.assertHandshakeProtocols(customHandshakeProtocols!)
-                handshakeProtocols = customHandshakeProtocols
-            } else {
-                handshakeProtocols = self.getSupportedHandshakeProtocols()
-            }
+            handshakeProtocols = self.getSupportedHandshakeProtocols()
         }
 
         var routing: Routing! = config.routing
@@ -116,6 +104,21 @@ public class OutOfBandCommand {
     }
 
     /**
+     Parses URL, decodes invitation and calls `receiveInvitation` with parsed invitation message.
+
+     Agent role: receiver (invitee)
+
+     - Parameters:
+        - url: url containing a base64 encoded invitation to receive.
+        - config: configuration of how out-of-band invitation should be received.
+     - Returns: out-of-band record and connection record if one has been created.
+    */
+    public func receiveInvitationFromUrl(_ url: String, config: ReceiveOutOfBandInvitationConfig? = nil) async throws -> (OutOfBandRecord, ConnectionRecord?) {
+        let outOfBandInvitation = try OutOfBandInvitation.fromUrl(url)
+        return try await receiveInvitation(outOfBandInvitation, config: config)
+    }
+
+    /**
      Creates inbound out-of-band record and assigns out-of-band invitation message to it if the
      message is valid. It automatically passes out-of-band invitation for further processing to
      `acceptInvitation` method. If you don't want to do that you can set `autoAcceptInvitation`
@@ -132,7 +135,7 @@ public class OutOfBandCommand {
         - config: configuration of how out-of-band invitation should be received.
      - Returns: out-of-band record and connection record if one has been created.
     */
-    public func receiveInvitation(invitation: OutOfBandInvitation, config: ReceiveOutOfBandInvitationConfig?) async throws -> (OutOfBandRecord, ConnectionRecord?) {
+    public func receiveInvitation(_ invitation: OutOfBandInvitation, config: ReceiveOutOfBandInvitationConfig? = nil) async throws -> (OutOfBandRecord, ConnectionRecord?) {
         let autoAcceptInvitation = config?.autoAcceptInvitation ?? true
         let autoAcceptConnection = config?.autoAcceptConnection ?? true
         let reuseConnection = config?.reuseConnection ?? false
@@ -201,7 +204,7 @@ public class OutOfBandCommand {
         - config: configuration of how out-of-band invitation should be received.
      - Returns: out-of-band record and connection record if one has been created.
     */
-    public func acceptInvitation(outOfBandId: String, config: ReceiveOutOfBandInvitationConfig?) async throws -> (OutOfBandRecord, ConnectionRecord?) {
+    public func acceptInvitation(outOfBandId: String, config: ReceiveOutOfBandInvitationConfig? = nil) async throws -> (OutOfBandRecord, ConnectionRecord?) {
         let outOfBandRecord = try await agent.outOfBandService.getById(outOfBandId)
         let existingConnection = try await findExistingConnection(outOfBandInvitation: outOfBandRecord.outOfBandInvitation)
 
@@ -301,6 +304,7 @@ public class OutOfBandCommand {
         return connections.first(where: { $0.isReady() })
     }
 
+    // Only Connection protocol is supported for now
     private func getSupportedHandshakeProtocols() -> [HandshakeProtocol] {
         return [.Connections]
     }

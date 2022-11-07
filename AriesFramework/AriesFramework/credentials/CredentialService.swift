@@ -57,7 +57,7 @@ public class CredentialService {
     */
     public func createOffer(options: CreateOfferOptions) async throws -> (OfferCredentialMessage, CredentialExchangeRecord) {
         var credentialRecord = CredentialExchangeRecord(
-            connectionId: options.connection.id,
+            connectionId: options.connection?.id,
             threadId: CredentialExchangeRecord.generateId(),
             state: .OfferSent,
             autoAcceptCredential: options.autoAcceptCredential,
