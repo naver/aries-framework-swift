@@ -1,11 +1,13 @@
 
 import Foundation
 import Indy
+import os
 
 public class CredentialService {
     let agent: Agent
     let credentialRepository: CredentialRepository
     let ledgerService: LedgerService
+    let logger = Logger(subsystem: "AriesFramework", category: "CredentialService")
 
     init(agent: Agent) {
         self.agent = agent
@@ -56,8 +58,11 @@ public class CredentialService {
      - Returns: offer message and associated credential record.
     */
     public func createOffer(options: CreateOfferOptions) async throws -> (OfferCredentialMessage, CredentialExchangeRecord) {
+        if options.connection == nil {
+            logger.info("Creating credential offer without connection. This should be used for out-of-band request message with handshake.")
+        }
         var credentialRecord = CredentialExchangeRecord(
-            connectionId: options.connection?.id,
+            connectionId: options.connection?.id ?? "connectionless-offer",
             threadId: CredentialExchangeRecord.generateId(),
             state: .OfferSent,
             autoAcceptCredential: options.autoAcceptCredential,
@@ -212,7 +217,11 @@ public class CredentialService {
 
         var credentialRecord = try await credentialRepository.getByThreadAndConnectionId(
             threadId: requestMessage.threadId,
-            connectionId: messageContext.connection?.id)
+            connectionId: nil)
+
+        // The credential offer may have been a connectionless-offer.
+        let connection = try messageContext.assertReadyConnection()
+        credentialRecord.connectionId = connection.id
 
         try await agent.didCommMessageRepository.saveAgentMessage(
             role: DidCommMessageRole.Receiver,

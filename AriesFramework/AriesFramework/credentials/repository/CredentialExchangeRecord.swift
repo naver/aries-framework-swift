@@ -12,7 +12,7 @@ public struct CredentialExchangeRecord: BaseRecord {
     public var updatedAt: Date?
     public var tags: Tags?
 
-    public var connectionId: String?
+    public var connectionId: String
     public var threadId: String
     public var state: CredentialState
     public var autoAcceptCredential: AutoAcceptCredential?
@@ -33,7 +33,7 @@ extension CredentialExchangeRecord: Codable {
 
     init(
         tags: Tags? = nil,
-        connectionId: String? = nil,
+        connectionId: String,
         threadId: String,
         state: CredentialState,
         autoAcceptCredential: AutoAcceptCredential? = nil,
@@ -61,9 +61,7 @@ extension CredentialExchangeRecord: Codable {
         let credentialIds = self.credentials.map { $0.credentialRecordId }
 
         tags["threadId"] = self.threadId
-        if let connectionId = self.connectionId {
-            tags["connectionId"] = connectionId
-        }
+        tags["connectionId"] = connectionId
         tags["state"] = self.state.rawValue
         tags["credentialIds"] = credentialIds.joined(separator: ",")
 

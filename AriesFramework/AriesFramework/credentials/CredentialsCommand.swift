@@ -41,7 +41,10 @@ public class CredentialsCommand {
     */
     public func offerCredential(options: CreateOfferOptions) async throws -> CredentialExchangeRecord {
         let (message, credentialRecord) = try await agent.credentialService.createOffer(options: options)
-        try await agent.messageSender.send(message: OutboundMessage(payload: message, connection: options.connection))
+        guard let connection = options.connection else {
+            throw AriesFrameworkError.frameworkError("Connection is required for sending credential offer")
+        }
+        try await agent.messageSender.send(message: OutboundMessage(payload: message, connection: connection))
 
         return credentialRecord
     }

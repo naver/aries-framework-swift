@@ -25,18 +25,20 @@ class OobTest: XCTestCase {
         let aliceConfig = try TestHelper.getBaseConfig(name: "alice")
         aliceAgent = Agent(agentConfig: aliceConfig, agentDelegate: nil)
         try await aliceAgent.initialize()
-
-        let credDefId = try await prepareForIssuance(faberAgent, ["name", "age"])
-        credentialTemplate = CreateOfferOptions(
-            credentialDefinitionId: credDefId,
-            credentialValues: credentialPreview.attributes,
-            autoAcceptCredential: .never)
     }
 
     override func tearDown() async throws {
         try await super.tearDown()
         try await faberAgent.reset()
         try await aliceAgent.reset()
+    }
+    
+    func prepareForCredentialTest() async throws {
+        let credDefId = try await TestHelper.prepareForIssuance(faberAgent, ["name", "age"])
+        credentialTemplate = CreateOfferOptions(
+            credentialDefinitionId: credDefId,
+            attributes: credentialPreview.attributes,
+            autoAcceptCredential: .never)
     }
 
     func testCreateOutOfBandInvitation() async throws {
@@ -55,7 +57,6 @@ class OobTest: XCTestCase {
         let message = TrustPingMessage(comment: "Hello")
         let config = CreateOutOfBandInvitationConfig(
             label: "test-connection",
-            handshakeProtocols: [HandshakeProtocol.Connections],
             messages: [message])
         let outOfBandRecord = try await faberAgent.oob.createInvitation(config: config)
         let invitation = outOfBandRecord.outOfBandInvitation
@@ -71,9 +72,9 @@ class OobTest: XCTestCase {
         let invitation = outOfBandRecord.outOfBandInvitation
 
         XCTAssertNotNil(invitation.handshakeProtocols)
-        XCTAssertEqual(invitation.getRequests().count, 1)
+        XCTAssertEqual(try invitation.getRequests().count, 1)
 
-        if let service = invitation.services[0] as OutOfBandDidDocumentService {
+        if case .oobDidDocument(let service) = invitation.services[0] {
             XCTAssertEqual(service.serviceEndpoint, DID_COMM_TRANSPORT_QUEUE)
             XCTAssertTrue(service.recipientKeys[0].starts(with: "did:key"))
         } else {
@@ -85,7 +86,7 @@ class OobTest: XCTestCase {
         let outOfBandRecord = try await faberAgent.oob.createInvitation(config: makeConnectionConfig)
         let invitation = outOfBandRecord.outOfBandInvitation
 
-        let (receivedOutOfBandRecord, connectionRecord) = try await aliceAgent.oob.receiveInvitation(invitation)
+        let (receivedOutOfBandRecord, _) = try await aliceAgent.oob.receiveInvitation(invitation)
 
         XCTAssertEqual(receivedOutOfBandRecord.role, .Receiver)
         XCTAssertEqual(receivedOutOfBandRecord.state, .Initial)
@@ -97,26 +98,37 @@ class OobTest: XCTestCase {
     func testConnectionWithURL() async throws {
         let outOfBandRecord = try await faberAgent.oob.createInvitation(config: makeConnectionConfig)
         let invitation = outOfBandRecord.outOfBandInvitation
-        let url = outOfBandInvitation.toUrl(domain: "http://example.com")
+        let url = try invitation.toUrl(domain: "http://example.com")
 
-        let (_, aliceFaberConnection) = try await aliceAgent.oob.receiveInvitationFromUrl(url)
+        let (_, connection) = try await aliceAgent.oob.receiveInvitationFromUrl(url)
+        guard let aliceFaberConnection = connection else {
+            XCTFail("Connection is nil after receiving invitation from url")
+            return
+        }
         XCTAssertEqual(aliceFaberConnection.state, .Complete)
 
-        let faberAliceConnection = try await faberAgent.connectionService.findByInvitationKey(try invitation.invitationKey())
-        XCTAssertEqual(faberAliceConnection?.state, .Complete)
+        guard let faberAliceConnection = try await faberAgent.connectionService.findByInvitationKey(try invitation.invitationKey()!) else {
+            XCTFail("Cannot find connection by invitation key")
+            return
+        }
+        XCTAssertEqual(faberAliceConnection.state, .Complete)
 
-        XCTAssertEqual(faberAliceConnection?.alias, makeConnectionConfig.alias)
+        XCTAssertEqual(faberAliceConnection.alias, makeConnectionConfig.alias)
         XCTAssertEqual(try? TestHelper.isConnectedWith(received: faberAliceConnection, connection: aliceFaberConnection), true)
         XCTAssertEqual(try? TestHelper.isConnectedWith(received: aliceFaberConnection, connection: faberAliceConnection), true)
     }
 
     func testCredentialOffer() async throws {
+        try await prepareForCredentialTest()
+
         let (message, _) = try await faberAgent.credentialService.createOffer(options: credentialTemplate)
         let outOfBandRecord = try await faberAgent.oob.createInvitation(
             config: CreateOutOfBandInvitationConfig(messages: [message]))
         let invitation = outOfBandRecord.outOfBandInvitation
 
-        (aliceCredentialRecord, _) = try await aliceAgent.oob.receiveInvitation(invitation, config: receiveInvitationConfig)
-        XCTAssertEqual(aliceCredentialRecord.state, .OfferReceived)
+        let (_, connection) = try await aliceAgent.oob.receiveInvitation(invitation, config: receiveInvitationConfig)
+        let credentialRecord = try await aliceAgent.credentialRepository.findByThreadAndConnectionId(
+            threadId: message.threadId, connectionId: connection?.id)
+        XCTAssertEqual(credentialRecord?.state, .OfferReceived)
     }
 }
