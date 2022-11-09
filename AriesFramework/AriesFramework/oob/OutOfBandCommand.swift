@@ -63,12 +63,12 @@ public class OutOfBandCommand {
             routing = try await self.agent.mediationRecipient.getRouting()
         }
 
-        let services = routing.endpoints.enumerated().map({ (index, endpoint) -> OutOfBandDidCommService in
+        let services = try routing.endpoints.enumerated().map({ (index, endpoint) -> OutOfBandDidCommService in
             return .oobDidDocument(OutOfBandDidDocumentService(
                 id: "#inline-\(index)",
                 serviceEndpoint: endpoint,
-                recipientKeys: [routing.verkey],
-                routingKeys: routing.routingKeys
+                recipientKeys: try DIDParser.ConvertVerkeysToDidKeys(verkeys: [routing.verkey]),
+                routingKeys: try DIDParser.ConvertVerkeysToDidKeys(verkeys: routing.routingKeys)
             ))
         })
 

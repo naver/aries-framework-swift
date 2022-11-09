@@ -13,7 +13,6 @@ class OobTest: XCTestCase {
     let receiveInvitationConfig = ReceiveOutOfBandInvitationConfig(
         autoAcceptConnection: false)
     let credentialPreview = CredentialPreview.fromDictionary(["name": "Alice", "age": "20"])
-    var credentialTemplate: CreateOfferOptions!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -25,6 +24,9 @@ class OobTest: XCTestCase {
         let aliceConfig = try TestHelper.getBaseConfig(name: "alice")
         aliceAgent = Agent(agentConfig: aliceConfig, agentDelegate: nil)
         try await aliceAgent.initialize()
+
+        faberAgent.setOutboundTransport(SubjectOutboundTransport(subject: aliceAgent))
+        aliceAgent.setOutboundTransport(SubjectOutboundTransport(subject: faberAgent))
     }
 
     override func tearDown() async throws {
@@ -32,10 +34,10 @@ class OobTest: XCTestCase {
         try await faberAgent.reset()
         try await aliceAgent.reset()
     }
-    
-    func prepareForCredentialTest() async throws {
+
+    func prepareForCredentialTest() async throws -> CreateOfferOptions {
         let credDefId = try await TestHelper.prepareForIssuance(faberAgent, ["name", "age"])
-        credentialTemplate = CreateOfferOptions(
+        return CreateOfferOptions(
             credentialDefinitionId: credDefId,
             attributes: credentialPreview.attributes,
             autoAcceptCredential: .never)
@@ -65,10 +67,11 @@ class OobTest: XCTestCase {
         XCTAssertEqual(try invitation.getRequests().count, 1)
     }
 
-    func testCreateWithRequest() async throws {
-        let (message, _) = try await faberAgent.credentialService.createOffer(options: credentialTemplate)
+    func testCreateWithOfferCredentialMessage() async throws {
+        let offerOptions = try await prepareForCredentialTest()
+        let (message, _) = try await faberAgent.credentialService.createOffer(options: offerOptions)
         let outOfBandRecord = try await faberAgent.oob.createInvitation(
-            config: CreateOutOfBandInvitationConfig(handshake: false, messages: [message]))
+            config: CreateOutOfBandInvitationConfig(messages: [message]))
         let invitation = outOfBandRecord.outOfBandInvitation
 
         XCTAssertNotNil(invitation.handshakeProtocols)
@@ -119,9 +122,8 @@ class OobTest: XCTestCase {
     }
 
     func testCredentialOffer() async throws {
-        try await prepareForCredentialTest()
-
-        let (message, _) = try await faberAgent.credentialService.createOffer(options: credentialTemplate)
+        let offerOptions = try await prepareForCredentialTest()
+        let (message, _) = try await faberAgent.credentialService.createOffer(options: offerOptions)
         let outOfBandRecord = try await faberAgent.oob.createInvitation(
             config: CreateOutOfBandInvitationConfig(messages: [message]))
         let invitation = outOfBandRecord.outOfBandInvitation

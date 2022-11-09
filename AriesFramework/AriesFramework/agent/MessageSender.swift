@@ -36,7 +36,10 @@ public class MessageSender {
             message.payload.replaceNewDidCommPrefixWithLegacyDidSov()
         }
 
-        let services = findDidCommServices(connection: message.connection)
+        let services = try findDidCommServices(connection: message.connection)
+        if services.isEmpty {
+            logger.error("Cannot find services for message of type \(message.payload.type)")
+        }
         for service in services {
             if endpointPrefix != nil && !service.serviceEndpoint.hasPrefix(endpointPrefix!) {
                 continue
@@ -60,7 +63,7 @@ public class MessageSender {
         throw AriesFrameworkError.frameworkError("Message is undeliverable to connection \(message.connection.id)")
     }
 
-    func findDidCommServices(connection: ConnectionRecord) -> [DidDocService] {
+    func findDidCommServices(connection: ConnectionRecord) throws -> [DidDocService] {
         if ((connection.theirDidDoc) != nil) {
             return connection.theirDidDoc!.didCommServices()
         }
@@ -72,6 +75,9 @@ public class MessageSender {
                     recipientKeys: invitation.recipientKeys ?? [],
                     routingKeys: invitation.routingKeys ?? [])
                 return [DidDocService.didComm(service)]
+            }
+            if let invitation = connection.outOfBandInvitation {
+                return try invitation.services.compactMap { try $0.asDidDocService() }
             }
         }
 

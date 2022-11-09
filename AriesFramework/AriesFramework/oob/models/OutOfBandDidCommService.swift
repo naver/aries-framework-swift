@@ -22,6 +22,20 @@ public enum OutOfBandDidCommService: Codable {
             try did.encode(to: encoder)
         }
     }
+
+    public func asDidDocService() throws -> DidDocService? {
+        switch self {
+        case .oobDidDocument(let oobDidDocument):
+            let service = DidCommService(
+                id: oobDidDocument.id,
+                serviceEndpoint: oobDidDocument.serviceEndpoint,
+                recipientKeys: try DIDParser.ConvertDidKeysToVerkeys(didKeys: oobDidDocument.recipientKeys),
+                routingKeys: try DIDParser.ConvertDidKeysToVerkeys(didKeys: oobDidDocument.routingKeys ?? []))
+            return DidDocService.didComm(service)
+        case .did:
+            return nil
+        }
+    }
 }
 
 public struct OutOfBandDidDocumentService: Codable {

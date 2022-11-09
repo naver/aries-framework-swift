@@ -41,6 +41,18 @@ public class DIDParser {
         return String(method)
     }
 
+    public static func ConvertVerkeysToDidKeys(verkeys: [String]) throws -> [String] {
+        return try verkeys.map { verkey in
+            return try ConvertVerkeyToDidKey(verkey: verkey)
+        }
+    }
+
+    public static func ConvertDidKeysToVerkeys(didKeys: [String]) throws -> [String] {
+        return try didKeys.map { didKey in
+            return try ConvertDidKeyToVerkey(did: didKey)
+        }
+    }
+
     public static func ConvertVerkeyToDidKey(verkey: String) throws -> String {
         guard var bytes = Base58.base58Decode(verkey) else {
             throw AriesFrameworkError.frameworkError("Invalid base58 encoded verkey: \(verkey)")
