@@ -63,13 +63,18 @@ public class Repository<T: BaseRecord & Codable> {
         return try recordToInstance(record: record)
     }
 
-    public func getAll() async throws -> [T] {
-        return try await findByQuery("{}")
+    public func getAll() async -> [T] {
+        return await findByQuery("{}")
     }
 
-    public func findByQuery(_ query: String) async throws -> [T] {
-        let records = try await search(type: T.type, query: query)
-        return try records.map { try recordToInstance(record: $0) }
+    public func findByQuery(_ query: String) async -> [T] {
+        do {
+            let records = try await search(type: T.type, query: query)
+            return try records.map { try recordToInstance(record: $0) }
+        } catch {
+            logger.debug("Query \(query) failed with error: \(error)")
+            return []
+        }
     }
 
     private func search(type: String, query: String, limit: Int = Int.max) async throws -> [WalletRecord] {
@@ -101,7 +106,7 @@ public class Repository<T: BaseRecord & Codable> {
     }
 
     public func findSingleByQuery(_ query: String) async throws -> T? {
-        let records = try await findByQuery(query)
+        let records = await findByQuery(query)
         if records.count == 1 {
             return records[0]
         } else if records.count == 0 {

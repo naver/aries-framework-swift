@@ -238,6 +238,8 @@ public class OutOfBandCommand {
 
                 connectionRecord = try await agent.connections.acceptOutOfBandInvitation(outOfBandRecord: outOfBandRecord, config: config)
             }
+            
+            // TODO: wait connection here and return finished connection
 
             if messages.count > 0 {
                 try await processMessages(messages, connectionRecord: connectionRecord!)
@@ -296,7 +298,7 @@ public class OutOfBandCommand {
         guard let invitationKey = try outOfBandInvitation.invitationKey() else {
             return nil
         }
-        let connections = try await agent.connectionService.findAllByInvitationKey(invitationKey)
+        let connections = await agent.connectionService.findAllByInvitationKey(invitationKey)
 
         if (connections.count == 0) {
             return nil

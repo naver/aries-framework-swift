@@ -110,7 +110,7 @@ class OobTest: XCTestCase {
         }
         XCTAssertEqual(aliceFaberConnection.state, .Complete)
 
-        guard let faberAliceConnection = try await faberAgent.connectionService.findByInvitationKey(try invitation.invitationKey()!) else {
+        guard let faberAliceConnection = await faberAgent.connectionService.findByInvitationKey(try invitation.invitationKey()!) else {
             XCTFail("Cannot find connection by invitation key")
             return
         }

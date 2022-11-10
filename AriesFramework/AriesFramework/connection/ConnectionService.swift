@@ -1,5 +1,6 @@
 
 import Foundation
+import os
 
 public struct Routing {
     let endpoints : [String]
@@ -13,6 +14,7 @@ public class ConnectionService {
     let agent: Agent
     let connectionRepository: ConnectionRepository
     let connectionWaiter = DispatchSemaphore(value: 1)
+    let logger = Logger(subsystem: "AriesFramework", category: "ConnectionService")
 
     init(agent: Agent) {
         self.agent = agent
@@ -214,12 +216,10 @@ public class ConnectionService {
      with all the new information from the connection request message. Use ``createResponse(connectionId:)``
      after calling this function to create a connection response.
 
-     - Parameters:
-       - messageContext: the message context containing the connection request message.
-       - routing: routing information for the connection. This should not be nil if the request is for the multi-use invitation.
-    - Returns: updated connection record.
+     - Parameter messageContext: the message context containing the connection request message.
+     - Returns: updated connection record.
     */
-    public func processRequest(messageContext: InboundMessageContext, routing: Routing?) async throws -> ConnectionRecord {
+    public func processRequest(messageContext: InboundMessageContext) async throws -> ConnectionRecord {
         let decoder = JSONDecoder()
         let message = try decoder.decode(ConnectionRequestMessage.self, from: Data(messageContext.plaintextMessage.utf8))
 
@@ -227,47 +227,53 @@ public class ConnectionService {
             throw AriesFrameworkError.frameworkError("Unable to process connection request without senderVerkey or recipientVerkey")
         }
 
-        guard var connectionRecord = try await findByInvitationKey(recipientKey) else {
-            throw AriesFrameworkError.frameworkError("Unable to process Connection for recipientKey \(recipientKey) not found!")
+        var connectionRecord = await findByInvitationKey(recipientKey)
+        if let connectionRecord = connectionRecord {
+            assert(connectionRecord.state == .Invited)
+            assert(connectionRecord.role == .Inviter)
         }
-        assert(connectionRecord.state == ConnectionState.Invited)
-        assert(connectionRecord.role == ConnectionRole.Inviter)
 
         if (message.connection.didDoc == nil) {
             throw AriesFrameworkError.frameworkError("Public DIDs are not supported yet")
         }
 
-        if (connectionRecord.multiUseInvitation) {
-            if routing == nil {
-                throw AriesFrameworkError.frameworkError("Cannot process request for multi-use invitation without routing object. Make sure to call processRequest with the routing parameter provided.")
+        var outOfBandRecord: OutOfBandRecord?
+        if connectionRecord == nil {
+            outOfBandRecord = try await agent.outOfBandService.findByInvitationKey(recipientKey)
+            if outOfBandRecord == nil {
+                throw AriesFrameworkError.frameworkError("No out-of-band record found for invitation key: \(recipientKey)")
             }
+        }
 
+        if (connectionRecord == nil || connectionRecord!.multiUseInvitation) {
             connectionRecord = try await createConnection(
-                role: connectionRecord.role,
-                state: connectionRecord.state,
-                invitation: connectionRecord.invitation,
+                role: .Inviter,
+                state: .Invited,
+                invitation: connectionRecord?.invitation,
+                outOfBandInvitation: outOfBandRecord?.outOfBandInvitation,
                 alias: nil,
-                routing: routing!,
+                routing: agent.mediationRecipient.getRouting(),
                 theirLabel: message.label,
-                autoAcceptConnection: connectionRecord.autoAcceptConnection,
+                autoAcceptConnection: connectionRecord?.autoAcceptConnection ?? outOfBandRecord?.autoAcceptConnection,
                 multiUseInvitation: false,
-                tags: connectionRecord.getTags(),
                 imageUrl: message.imageUrl,
                 threadId: message.threadId)
+
+            try await self.connectionRepository.save(connectionRecord!)
         }
 
-        connectionRecord.theirDidDoc = message.connection.didDoc
-        connectionRecord.theirLabel = message.label
-        connectionRecord.threadId = message.id
-        connectionRecord.theirDid = message.connection.did
-        connectionRecord.imageUrl = message.imageUrl
+        connectionRecord!.theirDidDoc = message.connection.didDoc
+        connectionRecord!.theirLabel = message.label
+        connectionRecord!.threadId = message.id
+        connectionRecord!.theirDid = message.connection.did
+        connectionRecord!.imageUrl = message.imageUrl
 
-        if connectionRecord.theirKey() == nil {
-            throw AriesFrameworkError.frameworkError("Connection with id \(connectionRecord.id) has no recipient keys.")
+        if connectionRecord!.theirKey() == nil {
+            throw AriesFrameworkError.frameworkError("Connection with id \(connectionRecord!.id) has no recipient keys.")
         }
 
-        try await updateState(connectionRecord: &connectionRecord, newState: ConnectionState.Requested)
-        return connectionRecord
+        try await updateState(connectionRecord: &connectionRecord!, newState: .Requested)
+        return connectionRecord!
     }
 
     /**
@@ -390,8 +396,8 @@ public class ConnectionService {
      - Parameter key: the invitation key to search for.
      - Returns: the connection record, if found.
     */
-    public func findByInvitationKey(_ key: String) async throws -> ConnectionRecord? {
-        let connections = try await self.connectionRepository.findByQuery("""
+    public func findByInvitationKey(_ key: String) async -> ConnectionRecord? {
+        let connections = await self.connectionRepository.findByQuery("""
             {"invitationKey": "\(key)"}
             """)
         if (connections.count == 0) {
@@ -406,8 +412,8 @@ public class ConnectionService {
      - Parameter key: the invitation key to search for.
      - Returns: the connection record, if found.
     */
-    public func findAllByInvitationKey(_ key: String) async throws -> [ConnectionRecord] {
-        return try await self.connectionRepository.findByQuery("""
+    public func findAllByInvitationKey(_ key: String) async -> [ConnectionRecord] {
+        return await self.connectionRepository.findByQuery("""
             {"invitationKey": "\(key)"}
             """)
     }

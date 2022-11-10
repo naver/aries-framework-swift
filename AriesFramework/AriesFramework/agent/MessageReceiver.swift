@@ -22,7 +22,7 @@ public class MessageReceiver {
                                                        recipientVerkey: decryptedMessage.recipientKey)
             try await agent.dispatcher.dispatch(messageContext: messageContext)
         } catch {
-            logger.error("failed to receive message: \(error.localizedDescription)")
+            logger.error("failed to receive message: \(error)")
         }
     }
 
@@ -36,7 +36,7 @@ public class MessageReceiver {
                                                        recipientVerkey: nil)
             try await agent.dispatcher.dispatch(messageContext: messageContext)
         } catch {
-            logger.error("failed to receive message: \(error.localizedDescription)")
+            logger.error("failed to receive message: \(error)")
         }
     }
 
