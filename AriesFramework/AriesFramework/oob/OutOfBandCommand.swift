@@ -219,6 +219,7 @@ public class OutOfBandCommand {
                     logger.debug("Skip handshake and reuse existing connection \(existingConnection!.id)")
                     connectionRecord = existingConnection
                 } else {
+                    logger.debug("Start handshake to reuse connection.")
                     let isHandshakeReuseSuccessful = try await handleHandshakeReuse(outOfBandRecord: outOfBandRecord, connectionRecord: existingConnection!)
                     if (isHandshakeReuseSuccessful) {
                         connectionRecord = existingConnection
@@ -229,7 +230,7 @@ public class OutOfBandCommand {
             }
 
             if connectionRecord == nil {
-                logger.debug("Creating new connection")
+                logger.debug("Creating new connection.")
                 if !handshakeProtocols.contains(.Connections) {
                     throw AriesFrameworkError.frameworkError(
                         "Unsupported handshake protocol. Supported protocols: \(handshakeProtocols)"
@@ -239,7 +240,15 @@ public class OutOfBandCommand {
                 connectionRecord = try await agent.connections.acceptOutOfBandInvitation(outOfBandRecord: outOfBandRecord, config: config)
             }
             
-            // TODO: wait connection here and return finished connection
+            if try await agent.connectionService.fetchState(connectionRecord: connectionRecord!) != .Complete {
+                logger.debug("Waiting for connection.")
+                let result = try await agent.connectionService.waitForConnection()
+                logger.debug("Waiting Done with result: \(result).")
+                if !result {
+                    throw AriesFrameworkError.frameworkError("Connection timed out.")
+                }
+            }
+            connectionRecord = try await agent.connectionRepository.getById(connectionRecord!.id)
 
             if messages.count > 0 {
                 try await processMessages(messages, connectionRecord: connectionRecord!)
@@ -271,13 +280,6 @@ public class OutOfBandCommand {
             throw AriesFrameworkError.frameworkError("There is no message in requests~attach supported by agent.")
         }
 
-        if try await agent.connectionService.fetchState(connectionRecord: connectionRecord) != .Complete {
-            let result = await agent.connectionService.waitForConnection()
-            if !result {
-                throw AriesFrameworkError.frameworkError("Cannot process the invitation message. Connection timed out.")
-            }
-        }
-
         try await agent.messageReceiver.receivePlaintextMessage(message!, connection: connectionRecord)
     }
 
@@ -287,7 +289,7 @@ public class OutOfBandCommand {
         try await agent.messageSender.send(message: message)
 
         if try await agent.outOfBandRepository.getById(outOfBandRecord.id).state != .Done {
-            let result = await agent.outOfBandService.waitForHandshakeReuse()
+            let result = try await agent.outOfBandService.waitForHandshakeReuse()
             return result
         }
 

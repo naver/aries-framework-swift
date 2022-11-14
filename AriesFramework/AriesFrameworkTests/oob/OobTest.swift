@@ -11,7 +11,7 @@ class OobTest: XCTestCase {
         goalCode: "p2p-messaging",
         goal: "To make a connection")
     let receiveInvitationConfig = ReceiveOutOfBandInvitationConfig(
-        autoAcceptConnection: false)
+        autoAcceptConnection: true)
     let credentialPreview = CredentialPreview.fromDictionary(["name": "Alice", "age": "20"])
 
     override func setUp() async throws {
@@ -117,8 +117,8 @@ class OobTest: XCTestCase {
         XCTAssertEqual(faberAliceConnection.state, .Complete)
 
         XCTAssertEqual(faberAliceConnection.alias, makeConnectionConfig.alias)
-        XCTAssertEqual(try? TestHelper.isConnectedWith(received: faberAliceConnection, connection: aliceFaberConnection), true)
-        XCTAssertEqual(try? TestHelper.isConnectedWith(received: aliceFaberConnection, connection: faberAliceConnection), true)
+        XCTAssertEqual(TestHelper.isConnectedWith(received: faberAliceConnection, connection: aliceFaberConnection), true)
+        XCTAssertEqual(TestHelper.isConnectedWith(received: aliceFaberConnection, connection: faberAliceConnection), true)
     }
 
     func testCredentialOffer() async throws {

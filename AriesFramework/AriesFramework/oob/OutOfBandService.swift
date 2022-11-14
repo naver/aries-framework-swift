@@ -4,7 +4,7 @@ import Foundation
 public class OutOfBandService {
     let agent: Agent
     let outOfBandRepository: OutOfBandRepository
-    let handshakeReuseWaiter = DispatchSemaphore(value: 1)
+    let handshakeReuseWaiter = AsyncWaiter()
 
     init(agent: Agent) {
         self.agent = agent
@@ -75,7 +75,7 @@ public class OutOfBandService {
         updateRecord.state = newState
         try await outOfBandRepository.update(updateRecord)
         if (newState == OutOfBandState.Done) {
-            notifyHandshakeReuseWaiter()
+            finishHandshakeReuseWaiter()
         }
 
         agent.agentDelegate?.onOutOfBandStateChanged(outOfBandRecord: updateRecord)
@@ -110,12 +110,11 @@ public class OutOfBandService {
         try await outOfBandRepository.delete(outOfBandRecord)
     }
 
-    func waitForHandshakeReuse(timeout: Double = 20) async -> Bool {
-        let result = handshakeReuseWaiter.wait(timeout: .now() + timeout)
-        return result == .success
+    func waitForHandshakeReuse() async throws -> Bool {
+        return try await handshakeReuseWaiter.wait()
     }
 
-    private func notifyHandshakeReuseWaiter() {
-        handshakeReuseWaiter.signal()
+    private func finishHandshakeReuseWaiter() {
+        handshakeReuseWaiter.finish()
     }
 }

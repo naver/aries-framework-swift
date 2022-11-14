@@ -13,7 +13,7 @@ public struct Routing {
 public class ConnectionService {
     let agent: Agent
     let connectionRepository: ConnectionRepository
-    let connectionWaiter = DispatchSemaphore(value: 1)
+    let connectionWaiter = AsyncWaiter()
     let logger = Logger(subsystem: "AriesFramework", category: "ConnectionService")
 
     init(agent: Agent) {
@@ -375,7 +375,7 @@ public class ConnectionService {
         connectionRecord.state = newState
         try await self.connectionRepository.update(connectionRecord)
         if (newState == ConnectionState.Complete) {
-            notifyConnectionWaiter()
+            finishConnectionWaiter()
         }
         agent.agentDelegate?.onConnectionStateChanged(connectionRecord: connectionRecord)
     }
@@ -444,12 +444,11 @@ public class ConnectionService {
             """)
     }
 
-    func waitForConnection(timeout: Double = 20) async -> Bool {
-        let result = connectionWaiter.wait(timeout: .now() + timeout)
-        return result == .success
+    func waitForConnection() async throws -> Bool {
+        return try await connectionWaiter.wait()
     }
 
-    private func notifyConnectionWaiter() {
-        connectionWaiter.signal()
+    private func finishConnectionWaiter() {
+        connectionWaiter.finish()
     }
 }
