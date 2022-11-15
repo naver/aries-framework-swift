@@ -7,20 +7,20 @@ Aries Framework Swift is an iOS framework for [Aries](https://github.com/hyperle
 Aries Framework Swift supports most of [AIP 1.0](https://github.com/hyperledger/aries-rfcs/tree/main/concepts/0302-aries-interop-profile#aries-interop-profile-version-10) features for mobile agents.
 
 ### Supported features
-- Connection Protocol
-- Mediator Receipient Protocol
-- HTTP & WebSocket Transport
-- Basic Message Protocol
-- Issue Credential Protocol v1
-- Present Proof Protocol v1
-
-### Not supported
-- Report problem
-- Service decorator
+- ✅ ([RFC 0160](https://github.com/hyperledger/aries-rfcs/blob/master/features/0160-connection-protocol/README.md)) Connection Protocol 
+- ✅ ([RFC 0211](https://github.com/hyperledger/aries-rfcs/blob/master/features/0211-route-coordination/README.md)) Mediator Coordination Protocol 
+- ✅ ([RFC 0095](https://github.com/hyperledger/aries-rfcs/blob/master/features/0095-basic-message/README.md)) Basic Message Protocol 
+- ✅ ([RFC 0036](https://github.com/hyperledger/aries-rfcs/blob/master/features/0036-issue-credential/README.md)) Issue Credential Protocol 
+- ✅ ([RFC 0037](https://github.com/hyperledger/aries-rfcs/tree/master/features/0037-present-proof/README.md)) Present Proof Protocol 
+- ✅ HTTP & WebSocket Transport
 
 ### Under development
-- DID Exchange Protocol (AIP 2.0)
-- Out of Band Protocol (AIP 2.0)
+- 🚧 ([RFC 0023](https://github.com/hyperledger/aries-rfcs/tree/main/features/0023-did-exchange)) DID Exchange Protocol (AIP 2.0) 
+- 🚧 ([RFC 0434](https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md)) Out of Band Protocol (AIP 2.0) 
+
+### Not supported yet
+- ❌ Report Problem Protocol ([RFC 0035](https://github.com/hyperledger/aries-rfcs/blob/main/features/0035-report-problem/README.md))
+- ❌ Service Decorator ([RFC 0056](https://github.com/hyperledger/aries-rfcs/blob/main/features/0056-service-decorator/README.md))
 
 ## Requirements & Installation
 
