@@ -1,5 +1,6 @@
 
 import Foundation
+import Indy
 
 public class Agent {
     public var agentConfig: AgentConfig
@@ -59,6 +60,10 @@ public class Agent {
      It will also connect to the mediator if configured and connect to the ledger.
     */
     public func initialize() async throws {
+        if let rustLogEnvVar = ProcessInfo.processInfo.environment["RUST_LOG"] {
+            IndyLogger.setDefault(rustLogEnvVar)
+        }
+        
         try await wallet.initialize()
 
         if let publicDidSeed = agentConfig.publicDidSeed {
