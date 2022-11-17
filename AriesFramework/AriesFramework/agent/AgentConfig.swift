@@ -10,6 +10,7 @@ public struct AgentConfig {
         genesisPath: String,
         poolName: String = "AFSDefaultPool",
         mediatorConnectionsInvite: String? = nil,
+        mediatorPickupStrategy: MediatorPickupStrategy = .PickUpV1,
         label: String = "SwiftFrameworkAgent",
         autoAcceptConnections: Bool = true,
         mediatorPollingInterval: TimeInterval = 10,
@@ -27,6 +28,7 @@ public struct AgentConfig {
         self.genesisPath = genesisPath
         self.poolName = poolName
         self.mediatorConnectionsInvite = mediatorConnectionsInvite
+        self.mediatorPickupStrategy = mediatorPickupStrategy
         self.label = label
         self.autoAcceptConnections = autoAcceptConnections
         self.mediatorPollingInterval = mediatorPollingInterval
@@ -55,6 +57,8 @@ public struct AgentConfig {
     public var poolName: String
     /// The invite url for the mediator.
     public var mediatorConnectionsInvite: String?
+    /// The strategy for picking up message from the mediator.
+    public var mediatorPickupStrategy: MediatorPickupStrategy
     /// The label for the agent.
     public var label: String
     /// Whether to automatically accept connections. Default is true.
