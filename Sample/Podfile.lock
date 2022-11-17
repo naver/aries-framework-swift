@@ -1,5 +1,5 @@
 PODS:
-  - AriesFramework (1.0.0):
+  - AriesFramework (1.1.0):
     - BigInt (~> 5.2)
     - CollectionConcurrencyKit (~> 0.2.0)
     - Indy (= 1.16.2)
@@ -20,7 +20,7 @@ PODS:
   - WebSockets (0.5.0)
 
 DEPENDENCIES:
-  - AriesFramework (~> 1.0)
+  - AriesFramework (~> 1.1)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
@@ -36,7 +36,7 @@ SPEC REPOS:
     - WebSockets
 
 SPEC CHECKSUMS:
-  AriesFramework: e8bbf7d99ba364b3c67d785f7ee0c5cd3e5f25d2
+  AriesFramework: fd0ac16a9123c33bac6b9cc356356d7547799351
   BigInt: f668a80089607f521586bbe29513d708491ef2f7
   CollectionConcurrencyKit: 002045c2ec7e8861e14f8d817f5b68e6ce2f4d63
   Indy: 769a141f0d5b6dd27fdea2746c6346ef7eaefd5b
@@ -46,6 +46,6 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd
   WebSockets: 32c0aba46c23d11ad175c8da46e3f34657b17535
 
-PODFILE CHECKSUM: 1843b308793524f7c6fb9a85a709be8d9398077d
+PODFILE CHECKSUM: 76b2855f97df46a6b295fc6af3c9c3d318061f20
 
 COCOAPODS: 1.11.3
