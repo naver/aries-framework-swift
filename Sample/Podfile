@@ -5,5 +5,5 @@ platform :ios, '15.0'
 target 'wallet-app-ios' do
   use_frameworks!
 
-  pod 'AriesFramework', '~> 1.0'
+  pod 'AriesFramework', '~> 1.1'
 end

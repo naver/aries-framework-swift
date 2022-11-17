@@ -30,12 +30,12 @@ class WalletOpener : ObservableObject {
             }
         }
 
-//        let invitationUrl = "http://localhost:3001/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJlZDM1YzRlZS1hZjA2LTQ4M2ItOGEyZC1jMGY5YTk4ZTZjYTEiLCJsYWJlbCI6IkFyaWVzIEZyYW1ld29yayBKYXZhU2NyaXB0IE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyI2cDlKc0xCRlRveW5wRDR0a3RpU3VEQ0hETUVQd0FWUndmRGZSRWVnZUVDMSJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwOi8vbG9jYWxob3N0OjMwMDEiLCJyb3V0aW5nS2V5cyI6W119"
-        let invitationUrl: String? = nil
+        let invitationUrl = "https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ=="
         let genesisPath = Bundle(for: WalletOpener.self).path(forResource: "bcovrin-genesis", ofType: "txn")
         let config = AgentConfig(walletKey: key!,
             genesisPath: genesisPath!,
             mediatorConnectionsInvite: invitationUrl,
+            mediatorPickupStrategy: .Implicit,
             label: "SampleApp",
             autoAcceptCredential: .never,
             autoAcceptProof: .never)
