@@ -31,15 +31,18 @@ public class MessageSender {
         }
     }
 
-    public func send(message: OutboundMessage) async throws {
+    public func send(message: OutboundMessage, endpointPrefix: String? = nil) async throws {
         if agent.agentConfig.useLegacyDidSovPrefix {
             message.payload.replaceNewDidCommPrefixWithLegacyDidSov()
         }
 
         let services = findDidCommServices(connection: message.connection)
         for service in services {
+            if endpointPrefix != nil && !service.serviceEndpoint.hasPrefix(endpointPrefix!) {
+                continue
+            }
             logger.debug("Send outbound message of type \(message.payload.type) to endpoint \(service.serviceEndpoint)")
-            if outboundTransportForEndpoint(service.serviceEndpoint) == nil {
+            if endpointPrefix == nil && outboundTransportForEndpoint(service.serviceEndpoint) == nil {
                 logger.debug("endpoint is not supported")
                 continue
             }

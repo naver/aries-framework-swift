@@ -123,6 +123,7 @@
 		BBA00EC828BDAE050037601C /* bcovrin-genesis.txn in Resources */ = {isa = PBXBuildFile; fileRef = BBA00EC728BDAE050037601C /* bcovrin-genesis.txn */; };
 		BBA00ECB28C9B4D50037601C /* CriolloTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA00ECA28C9B4D50037601C /* CriolloTest.swift */; };
 		BBA2CF2627F452FB00437E58 /* ConnectionServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA2CF2527F452FA00437E58 /* ConnectionServiceTest.swift */; };
+		BBA92EB82924D0B7007F73B2 /* MediatorPickupStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA92EB72924D0B7007F73B2 /* MediatorPickupStrategy.swift */; };
 		BBAAA627280FF05000F8AC63 /* TransportDecorator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAA626280FF05000F8AC63 /* TransportDecorator.swift */; };
 		BBABA78928D17C32001EA090 /* TestHarnessConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBABA78828D17C32001EA090 /* TestHarnessConfig.swift */; };
 		BBABA78B28D1A107001EA090 /* AATHTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBABA78A28D1A107001EA090 /* AATHTest.swift */; };
@@ -306,6 +307,7 @@
 		BBA00EC728BDAE050037601C /* bcovrin-genesis.txn */ = {isa = PBXFileReference; lastKnownFileType = text; path = "bcovrin-genesis.txn"; sourceTree = "<group>"; };
 		BBA00ECA28C9B4D50037601C /* CriolloTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriolloTest.swift; sourceTree = "<group>"; };
 		BBA2CF2527F452FA00437E58 /* ConnectionServiceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionServiceTest.swift; sourceTree = "<group>"; };
+		BBA92EB72924D0B7007F73B2 /* MediatorPickupStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediatorPickupStrategy.swift; sourceTree = "<group>"; };
 		BBAAA626280FF05000F8AC63 /* TransportDecorator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransportDecorator.swift; sourceTree = "<group>"; };
 		BBABA78828D17C32001EA090 /* TestHarnessConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHarnessConfig.swift; sourceTree = "<group>"; };
 		BBABA78A28D1A107001EA090 /* AATHTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AATHTest.swift; sourceTree = "<group>"; };
@@ -775,6 +777,7 @@
 				BB5E99AA282BB70500746E0F /* messages */,
 				BBEBC563282CD7240080C2EA /* repository */,
 				BB3F296727E315C600D667C1 /* MediationRecipient.swift */,
+				BBA92EB72924D0B7007F73B2 /* MediatorPickupStrategy.swift */,
 			);
 			path = routing;
 			sourceTree = "<group>";
@@ -1149,6 +1152,7 @@
 				BB42BD2927FD4FB600880951 /* AgentDelegate.swift in Sources */,
 				BB7A03472892484C00D53822 /* CredentialAckHandler.swift in Sources */,
 				BB0EB34727E4895700B0D0E4 /* RsaSig2018.swift in Sources */,
+				BBA92EB82924D0B7007F73B2 /* MediatorPickupStrategy.swift in Sources */,
 				BBB4E5C928A49D9C007DF641 /* ProofExchangeRecord.swift in Sources */,
 				BBB4E5D328A4C966007DF641 /* RequestPresentationMessage.swift in Sources */,
 				BBB4E5E328A4F261007DF641 /* RequestedCredentials.swift in Sources */,
