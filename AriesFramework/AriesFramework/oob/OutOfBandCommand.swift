@@ -205,10 +205,10 @@ public class OutOfBandCommand {
      - Returns: out-of-band record and connection record if one has been created.
     */
     public func acceptInvitation(outOfBandId: String, config: ReceiveOutOfBandInvitationConfig? = nil) async throws -> (OutOfBandRecord, ConnectionRecord?) {
-        let outOfBandRecord = try await agent.outOfBandService.getById(outOfBandId)
+        var outOfBandRecord = try await agent.outOfBandService.getById(outOfBandId)
         let existingConnection = try await findExistingConnection(outOfBandInvitation: outOfBandRecord.outOfBandInvitation)
 
-        try await agent.outOfBandService.updateState(outOfBandRecord: outOfBandRecord, newState: .PrepareResponse)
+        try await agent.outOfBandService.updateState(outOfBandRecord: &outOfBandRecord, newState: .PrepareResponse)
 
         let messages = try outOfBandRecord.outOfBandInvitation.getRequests()
         let handshakeProtocols = outOfBandRecord.outOfBandInvitation.handshakeProtocols ?? []
@@ -241,14 +241,15 @@ public class OutOfBandCommand {
             }
             
             if try await agent.connectionService.fetchState(connectionRecord: connectionRecord!) != .Complete {
-                logger.debug("Waiting for connection.")
                 let result = try await agent.connectionService.waitForConnection()
-                logger.debug("Waiting Done with result: \(result).")
                 if !result {
                     throw AriesFrameworkError.frameworkError("Connection timed out.")
                 }
             }
             connectionRecord = try await agent.connectionRepository.getById(connectionRecord!.id)
+            if (!outOfBandRecord.reusable) {
+                try await agent.outOfBandService.updateState(outOfBandRecord: &outOfBandRecord, newState: .Done)
+            }
 
             if messages.count > 0 {
                 try await processMessages(messages, connectionRecord: connectionRecord!)

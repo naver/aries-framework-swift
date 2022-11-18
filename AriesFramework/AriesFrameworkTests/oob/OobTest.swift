@@ -17,11 +17,11 @@ class OobTest: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
-        let faberConfig = try TestHelper.getBaseConfig(name: "faber")
+        let faberConfig = try TestHelper.getBaseConfig(name: "faber", useLedgerSerivce: false)
         faberAgent = Agent(agentConfig: faberConfig, agentDelegate: nil)
         try await faberAgent.initialize()
 
-        let aliceConfig = try TestHelper.getBaseConfig(name: "alice")
+        let aliceConfig = try TestHelper.getBaseConfig(name: "alice", useLedgerSerivce: false)
         aliceAgent = Agent(agentConfig: aliceConfig, agentDelegate: nil)
         try await aliceAgent.initialize()
 
@@ -36,6 +36,11 @@ class OobTest: XCTestCase {
     }
 
     func prepareForCredentialTest() async throws -> CreateOfferOptions {
+        try await faberAgent.reset()
+        let faberConfig = try TestHelper.getBaseConfig(name: "faber", useLedgerSerivce: true)
+        faberAgent = Agent(agentConfig: faberConfig, agentDelegate: nil)
+        try await faberAgent.initialize()
+
         let credDefId = try await TestHelper.prepareForIssuance(faberAgent, ["name", "age"])
         return CreateOfferOptions(
             credentialDefinitionId: credDefId,
@@ -92,7 +97,7 @@ class OobTest: XCTestCase {
         let (receivedOutOfBandRecord, _) = try await aliceAgent.oob.receiveInvitation(invitation)
 
         XCTAssertEqual(receivedOutOfBandRecord.role, .Receiver)
-        XCTAssertEqual(receivedOutOfBandRecord.state, .Initial)
+        XCTAssertEqual(receivedOutOfBandRecord.state, .Done)
         XCTAssertEqual(receivedOutOfBandRecord.outOfBandInvitation.goal, makeConnectionConfig.goal)
         XCTAssertEqual(receivedOutOfBandRecord.outOfBandInvitation.goalCode, makeConnectionConfig.goalCode)
         XCTAssertEqual(receivedOutOfBandRecord.outOfBandInvitation.label, makeConnectionConfig.label)
@@ -132,5 +137,50 @@ class OobTest: XCTestCase {
         let credentialRecord = try await aliceAgent.credentialRepository.findByThreadAndConnectionId(
             threadId: message.threadId, connectionId: connection?.id)
         XCTAssertEqual(credentialRecord?.state, .OfferReceived)
+    }
+
+    func testWithHandskakeReuse() async throws {
+        let outOfBandRecord = try await faberAgent.oob.createInvitation(config: makeConnectionConfig)
+        let invitation = outOfBandRecord.outOfBandInvitation
+        let (_, firstAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(invitation)
+
+        invitation.id = UUID().uuidString
+        let (_, secondAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(
+            invitation, config: ReceiveOutOfBandInvitationConfig(reuseConnection: true))
+
+        XCTAssertEqual(firstAliceFaberConnection!.id, secondAliceFaberConnection!.id)
+
+        let faberConnections = await faberAgent.connectionRepository.getAll()
+        XCTAssertEqual(faberConnections.count, 1)
+    }
+
+    func testWithoutHandshakeReuse() async throws {
+        let outOfBandRecord = try await faberAgent.oob.createInvitation(config: makeConnectionConfig)
+        let invitation = outOfBandRecord.outOfBandInvitation
+        let (_, firstAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(invitation)
+
+        invitation.id = UUID().uuidString
+        let (_, secondAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(
+            invitation, config: ReceiveOutOfBandInvitationConfig(reuseConnection: false))
+
+        XCTAssertNotEqual(firstAliceFaberConnection!.id, secondAliceFaberConnection!.id)
+
+        let faberConnections = await faberAgent.connectionRepository.getAll()
+        XCTAssertEqual(faberConnections.count, 2)
+    }
+
+    func testReceivingSameInvition() async throws {
+        let outOfBandRecord = try await faberAgent.oob.createInvitation(config: makeConnectionConfig)
+        let invitation = outOfBandRecord.outOfBandInvitation
+
+        let (_, firstAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(invitation)
+        XCTAssertNotNil(firstAliceFaberConnection)
+
+        do {
+            let (_, _) = try await aliceAgent.oob.receiveInvitation(invitation)
+            XCTFail("Should not be able to receive same invitation twice")
+        } catch {
+            // expected
+        }
     }
 }

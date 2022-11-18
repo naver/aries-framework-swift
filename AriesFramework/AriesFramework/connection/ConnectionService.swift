@@ -227,16 +227,11 @@ public class ConnectionService {
             throw AriesFrameworkError.frameworkError("Unable to process connection request without senderVerkey or recipientVerkey")
         }
 
-        var connectionRecord = await findByInvitationKey(recipientKey)
-        if let connectionRecord = connectionRecord {
-            assert(connectionRecord.state == .Invited)
-            assert(connectionRecord.role == .Inviter)
-        }
-
         if (message.connection.didDoc == nil) {
             throw AriesFrameworkError.frameworkError("Public DIDs are not supported yet")
         }
 
+        var connectionRecord = await findByInvitationKey(recipientKey)
         var outOfBandRecord: OutOfBandRecord?
         if connectionRecord == nil {
             outOfBandRecord = try await agent.outOfBandService.findByInvitationKey(recipientKey)
@@ -255,7 +250,7 @@ public class ConnectionService {
                 routing: agent.mediationRecipient.getRouting(),
                 theirLabel: message.label,
                 autoAcceptConnection: connectionRecord?.autoAcceptConnection ?? outOfBandRecord?.autoAcceptConnection,
-                multiUseInvitation: false,
+                multiUseInvitation: true,
                 imageUrl: message.imageUrl,
                 threadId: message.threadId)
 

@@ -19,7 +19,7 @@ public class OutOfBandService {
             throw AriesFrameworkError.frameworkError("handshake-reuse message must have a parent thread id")
         }
 
-        guard let outOfBandRecord = try await findByInvitationId(parentThreadId) else {
+        guard var outOfBandRecord = try await findByInvitationId(parentThreadId) else {
             throw AriesFrameworkError.frameworkError("No out of band record found for handshake-reuse message")
         }
 
@@ -27,7 +27,7 @@ public class OutOfBandService {
         try outOfBandRecord.assertState(OutOfBandState.AwaitResponse)
 
         if (!outOfBandRecord.reusable) {
-            try await updateState(outOfBandRecord: outOfBandRecord, newState: OutOfBandState.Done)
+            try await updateState(outOfBandRecord: &outOfBandRecord, newState: .Done)
         }
 
         return HandshakeReuseAcceptedMessage(threadId: reuseMessage.threadId, parentThreadId: parentThreadId)
@@ -41,7 +41,7 @@ public class OutOfBandService {
             throw AriesFrameworkError.frameworkError("handshake-reuse-accepted message must have a parent thread id")
         }
 
-        guard let outOfBandRecord = try await findByInvitationId(parentThreadId) else {
+        guard var outOfBandRecord = try await findByInvitationId(parentThreadId) else {
             throw AriesFrameworkError.frameworkError("No out of band record found for handshake-reuse-accepted message")
         }
 
@@ -53,7 +53,7 @@ public class OutOfBandService {
             throw AriesFrameworkError.frameworkError("handshake-reuse-accepted is not in response to a handshake-reuse message.")
         }
 
-        try await updateState(outOfBandRecord: outOfBandRecord, newState: OutOfBandState.Done)
+        try await updateState(outOfBandRecord: &outOfBandRecord, newState: .Done)
     }
 
     public func createHandShakeReuse(outOfBandRecord: OutOfBandRecord, connectionRecord: ConnectionRecord) async throws -> HandshakeReuseMessage {
@@ -70,15 +70,14 @@ public class OutOfBandService {
         try await outOfBandRepository.save(outOfBandRecord)
     }
 
-    func updateState(outOfBandRecord: OutOfBandRecord, newState: OutOfBandState) async throws {
-        var updateRecord = outOfBandRecord
-        updateRecord.state = newState
-        try await outOfBandRepository.update(updateRecord)
-        if (newState == OutOfBandState.Done) {
+    func updateState(outOfBandRecord: inout OutOfBandRecord, newState: OutOfBandState) async throws {
+        outOfBandRecord.state = newState
+        try await outOfBandRepository.update(outOfBandRecord)
+        if (newState == .Done) {
             finishHandshakeReuseWaiter()
         }
 
-        agent.agentDelegate?.onOutOfBandStateChanged(outOfBandRecord: updateRecord)
+        agent.agentDelegate?.onOutOfBandStateChanged(outOfBandRecord: outOfBandRecord)
     }
 
     public func findById(_ outOfBandRecordId: String) async throws -> OutOfBandRecord? {
