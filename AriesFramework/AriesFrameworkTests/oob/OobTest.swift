@@ -140,13 +140,15 @@ class OobTest: XCTestCase {
     }
 
     func testWithHandskakeReuse() async throws {
-        let outOfBandRecord = try await faberAgent.oob.createInvitation(config: makeConnectionConfig)
-        let invitation = outOfBandRecord.outOfBandInvitation
-        let (_, firstAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(invitation)
+        let routing = try await faberAgent.mediationRecipient.getRouting()
+        let outOfBandRecord = try await faberAgent.oob.createInvitation(
+            config: CreateOutOfBandInvitationConfig(routing: routing))
+        let (_, firstAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(outOfBandRecord.outOfBandInvitation)
 
-        invitation.id = UUID().uuidString
+        let outOfBandRecord2 = try await faberAgent.oob.createInvitation(
+            config: CreateOutOfBandInvitationConfig(routing: routing))
         let (_, secondAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(
-            invitation, config: ReceiveOutOfBandInvitationConfig(reuseConnection: true))
+            outOfBandRecord2.outOfBandInvitation, config: ReceiveOutOfBandInvitationConfig(reuseConnection: true))
 
         XCTAssertEqual(firstAliceFaberConnection!.id, secondAliceFaberConnection!.id)
 
@@ -155,13 +157,15 @@ class OobTest: XCTestCase {
     }
 
     func testWithoutHandshakeReuse() async throws {
-        let outOfBandRecord = try await faberAgent.oob.createInvitation(config: makeConnectionConfig)
-        let invitation = outOfBandRecord.outOfBandInvitation
-        let (_, firstAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(invitation)
+        let routing = try await faberAgent.mediationRecipient.getRouting()
+        let outOfBandRecord = try await faberAgent.oob.createInvitation(
+            config: CreateOutOfBandInvitationConfig(routing: routing))
+        let (_, firstAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(outOfBandRecord.outOfBandInvitation)
 
-        invitation.id = UUID().uuidString
+        let outOfBandRecord2 = try await faberAgent.oob.createInvitation(
+            config: CreateOutOfBandInvitationConfig(routing: routing))
         let (_, secondAliceFaberConnection) = try await aliceAgent.oob.receiveInvitation(
-            invitation, config: ReceiveOutOfBandInvitationConfig(reuseConnection: false))
+            outOfBandRecord2.outOfBandInvitation, config: ReceiveOutOfBandInvitationConfig(reuseConnection: false))
 
         XCTAssertNotEqual(firstAliceFaberConnection!.id, secondAliceFaberConnection!.id)
 

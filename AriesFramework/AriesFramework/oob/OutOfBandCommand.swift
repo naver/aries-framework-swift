@@ -99,6 +99,7 @@ public class OutOfBandCommand {
 
         try await self.agent.outOfBandRepository.save(outOfBandRecord)
         agent.agentDelegate?.onOutOfBandStateChanged(outOfBandRecord: outOfBandRecord)
+        logger.debug("OutOfBandInvitation created with id: \(outOfBandInvitation.id)")
 
         return outOfBandRecord
     }

@@ -20,7 +20,7 @@ public class OutOfBandService {
         }
 
         guard var outOfBandRecord = try await findByInvitationId(parentThreadId) else {
-            throw AriesFrameworkError.frameworkError("No out of band record found for handshake-reuse message")
+            throw AriesFrameworkError.frameworkError("No out of band record found for handshake-reuse message with parentThreadId: \(parentThreadId)")
         }
 
         try outOfBandRecord.assertRole(OutOfBandRole.Sender)
@@ -42,7 +42,7 @@ public class OutOfBandService {
         }
 
         guard var outOfBandRecord = try await findByInvitationId(parentThreadId) else {
-            throw AriesFrameworkError.frameworkError("No out of band record found for handshake-reuse-accepted message")
+            throw AriesFrameworkError.frameworkError("No out of band record found for handshake-reuse-accepted message  with parentThreadId: \(parentThreadId)")
         }
 
         try outOfBandRecord.assertRole(OutOfBandRole.Receiver)
