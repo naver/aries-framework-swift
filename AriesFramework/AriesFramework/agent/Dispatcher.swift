@@ -22,16 +22,9 @@ public class Dispatcher {
             throw AriesFrameworkError.frameworkError("No handler for message type: \(messageContext.message.type)")
         }
 
-        var connection = messageContext.connection
         do {
             if let outboundMessage = try await handler.handle(messageContext: messageContext) {
                 logger.debug("Finishing dispatch with message of type: \(outboundMessage.payload.type)")
-
-                // messageContext.connection can be nil before connection is established.
-                // And this message must be a connection response message.
-                if connection == nil {
-                    connection = outboundMessage.connection
-                }
                 Task {
                     try await agent.messageSender.send(message: outboundMessage)
                 }
@@ -42,9 +35,6 @@ public class Dispatcher {
             logger.error("Failed to dispatch message of type: \(messageContext.message.type)")
             throw error
         }
-
-        // Request mediation after the agent is connected to the mediator.
-        try await agent.mediationRecipient.requestMediationIfNecessry(connection: connection!)
     }
 
     func getHandlerForType(messageType: String) -> MessageHandler? {

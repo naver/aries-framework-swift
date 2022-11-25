@@ -62,9 +62,6 @@ class AgentTest: XCTestCase {
         var agent = Agent(agentConfig: config, agentDelegate: TestDelegate(expectation: expectation))
         XCTAssertEqual(agent.isInitialized(), false)
         try await agent.initialize()
-        // agent.isInitialized() is undefined at this point.
-        // Mediation may be finished at this point if the mediator supports transport-return-route.
-        try await TestHelper.wait(for: expectation, timeout: 5)
         XCTAssertEqual(agent.isInitialized(), true)
 
         // test init with mediator after shutdown
