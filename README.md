@@ -13,14 +13,14 @@ Aries Framework Swift supports most of [AIP 1.0](https://github.com/hyperledger/
 - ✅ ([RFC 0036](https://github.com/hyperledger/aries-rfcs/blob/master/features/0036-issue-credential/README.md)) Issue Credential Protocol
 - ✅ ([RFC 0037](https://github.com/hyperledger/aries-rfcs/tree/master/features/0037-present-proof/README.md)) Present Proof Protocol
 - ✅ HTTP & WebSocket Transport
+- ✅ ([RFC 0434](https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md)) Out of Band Protocol (AIP 2.0)
 
 ### Under development
-- 🚧 ([RFC 0023](https://github.com/hyperledger/aries-rfcs/tree/main/features/0023-did-exchange)) DID Exchange Protocol (AIP 2.0)
-- 🚧 ([RFC 0434](https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md)) Out of Band Protocol (AIP 2.0)
 
 ### Not supported yet
-- ❌ Report Problem Protocol ([RFC 0035](https://github.com/hyperledger/aries-rfcs/blob/main/features/0035-report-problem/README.md))
-- ❌ Service Decorator ([RFC 0056](https://github.com/hyperledger/aries-rfcs/blob/main/features/0056-service-decorator/README.md))
+- ❌ ([RFC 0023](https://github.com/hyperledger/aries-rfcs/tree/main/features/0023-did-exchange)) DID Exchange Protocol (AIP 2.0)
+- ❌ ([RFC 0035](https://github.com/hyperledger/aries-rfcs/blob/main/features/0035-report-problem/README.md)) Report Problem Protocol
+- ❌ ([RFC 0056](https://github.com/hyperledger/aries-rfcs/blob/main/features/0056-service-decorator/README.md)) Service Decorator
 
 ## Requirements & Installation
 
@@ -83,12 +83,18 @@ You can use WebSocket transport without a mediator, but you will need a mediator
 
 `agentDelegate` can be nil if you don't want to receive any events from the agent.
 
-### Create a connection
+### Receive an invitation
 
 Create a connection by receiving a connection invitation.
 ```swift
     let connection = try await agent.connections.receiveInvitationFromUrl(invitationUrl)
 ```
+
+Or by receiving a out-of-band invitation.
+```swift
+    let (oobRecord, connection) = try await agent.oob.receiveInvitationFromUrl(invitationUrl)
+```
+`OutOfBandInvitation.getInvitationType(url:)` can be used to determine if the invitation is a connection invitation or a out-of-band invitation. 
 
 You will generally get the invitation url by QR code scanning.
 Once the connection is created, it is stored in the wallet and your counterparty agent can send you a credential or a proof request using the connection at any time. The connection record contains keys to encrypt or decrypt messages exchanged through the connection.

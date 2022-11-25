@@ -70,19 +70,20 @@ $ brew tap conanoc/libindy
 $ brew install --build-from-source libindy
 ```
 
-Cone the forked Aries Framework Javascript repository and checkout `legacy_connection` branch.
+Clone the Aries Framework Javascript repository.
 ```bash
-git clone https://github.com/conanoc/aries-framework-javascript.git
-git checkout legacy_connection
+git clone https://github.com/hyperledger/aries-framework-javascript.git
 ```
 
 Build and run the mediator.
 ```bash
-$ cd aries-framework-javascript/samples
-$ USE_LEGACY_INVITATION=1 npx ts-node mediator.ts
+$ cd aries-framework-javascript
+$ yarn install
+$ cd samples
+$ npx ts-node mediator.ts
 ```
 
-`testDemoFaber()` tests the credential exchange flow using WebSocket transport.
+`testDemoFaber()` tests the credential exchange flow.
 Run the faber agent in demo directory.
 ```bash
 $ cd aries-framework-javascript/demo
@@ -90,7 +91,8 @@ $ yarn install
 $ yarn faber
 ```
 
-Then, run `testDemoFaber()` and operate the faber agent to issue a credential.
+Then, get the invitation urls from the mediator and faber agent.
+Run `testDemoFaber()` with these urls and operate the faber agent to issue a credential.
 
 ### AATHTest preparation
 
