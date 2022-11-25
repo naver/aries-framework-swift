@@ -69,6 +69,11 @@ public class WsOutboundTransport: OutboundTransport {
     func handleEvents() async {
         do {
             for try await event in socket! {
+                // socket may have been closed in the loop
+                if socket == nil {
+                    return
+                }
+
                 switch event {
                 case .binary(let data):
                     let encryptedMessage = try JSONDecoder().decode(EncryptedMessage.self, from: data)
