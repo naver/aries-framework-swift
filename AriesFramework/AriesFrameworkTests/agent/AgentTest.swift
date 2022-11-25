@@ -93,15 +93,10 @@ class AgentTest: XCTestCase {
         config.mediatorConnectionsInvite = String(data: try Data(contentsOf: URL(string: mediatorInvitationUrl)!), encoding: .utf8)!
         class TestDelegate: AgentDelegate {
             let expectation: TestHelper.XCTestExpectation
-            let invitation: ConnectionInvitationMessage
             var connectionCount = 0
             var connectionCommand: ConnectionCommand?
-            init(expectation: TestHelper.XCTestExpectation, invitation: ConnectionInvitationMessage) {
+            init(expectation: TestHelper.XCTestExpectation) {
                 self.expectation = expectation
-                self.invitation = invitation
-            }
-            func setCommand(command: ConnectionCommand?) {
-                self.connectionCommand = command
             }
             func onConnectionStateChanged(connectionRecord: ConnectionRecord) {
                 print("connection state changed to \(connectionRecord.state)")
@@ -117,26 +112,58 @@ class AgentTest: XCTestCase {
             func onMediationStateChanged(mediationRecord: MediationRecord) {
                 print("mediation state changed to \(mediationRecord.state)")
                 XCTAssertEqual(mediationRecord.state, .Granted)
-                Task {
-                    _ = try? await connectionCommand!.receiveInvitation(invitation)
-                }
             }
         }
 
         let anotherInvite = String(data: try Data(contentsOf: URL(string: agentInvitationUrl)!), encoding: .utf8)!
-        let invitation = try ConnectionInvitationMessage.fromUrl(anotherInvite)
+        let invitation = try OutOfBandInvitation.fromUrl(anotherInvite)
 
         let expectation = TestHelper.expectation(description: "Two connections are made")
-        let testDelegate = TestDelegate(expectation: expectation, invitation: invitation)
+        let testDelegate = TestDelegate(expectation: expectation)
         let agent = Agent(agentConfig: config, agentDelegate: testDelegate)
-        testDelegate.setCommand(command: agent.connections)
         try await agent.initialize()
+        _ = try await agent.oob.receiveInvitation(invitation)
+
         try await TestHelper.wait(for: expectation, timeout: 5)
         try await agent.reset()
     }
 
-    // Run faber in AFJ/demo/ with websocket endpoint and offer credential
+    // Run faber in AFJ/demo/ and run mediator in AFJ/samples before this test
     func testDemoFaber() async throws {
+        class TestDelegate: AgentDelegate {
+            let expectation: TestHelper.XCTestExpectation
+
+            init(expectation: TestHelper.XCTestExpectation) {
+                self.expectation = expectation
+            }
+
+            func onCredentialStateChanged(credentialRecord: CredentialExchangeRecord) {
+                print("credential state changed to \(credentialRecord.state)")
+                if (credentialRecord.state == .Done) {
+                    expectation.fulfill()
+                }
+            }
+        }
+
+        var config = try TestHelper.getBcovinConfig(name: "alice")
+        config.mediatorConnectionsInvite = "http://localhost:3001/invitation?oob=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvb3V0LW9mLWJhbmQvMS4xL2ludml0YXRpb24iLCJAaWQiOiI2YmRiNTc5Mi0zMWQ4LTQyOGMtYTNmYy01MjA1OTUwNDE5NWQiLCJsYWJlbCI6IkFyaWVzIEZyYW1ld29yayBKYXZhU2NyaXB0IE1lZGlhdG9yIiwiYWNjZXB0IjpbImRpZGNvbW0vYWlwMSIsImRpZGNvbW0vYWlwMjtlbnY9cmZjMTkiXSwiaGFuZHNoYWtlX3Byb3RvY29scyI6WyJodHRwczovL2RpZGNvbW0ub3JnL2RpZGV4Y2hhbmdlLzEuMCIsImh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wIl0sInNlcnZpY2VzIjpbeyJpZCI6IiNpbmxpbmUtMCIsInNlcnZpY2VFbmRwb2ludCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMSIsInR5cGUiOiJkaWQtY29tbXVuaWNhdGlvbiIsInJlY2lwaWVudEtleXMiOlsiZGlkOmtleTp6Nk1rbm4xNldHOEg4M1gyZnlDenR5cENhTThwMTRjVlVCSjNUdDlFdFRGTkh2NDMiXSwicm91dGluZ0tleXMiOltdfSx7ImlkIjoiI2lubGluZS0xIiwic2VydmljZUVuZHBvaW50Ijoid3M6Ly9sb2NhbGhvc3Q6MzAwMSIsInR5cGUiOiJkaWQtY29tbXVuaWNhdGlvbiIsInJlY2lwaWVudEtleXMiOlsiZGlkOmtleTp6Nk1rbm4xNldHOEg4M1gyZnlDenR5cENhTThwMTRjVlVCSjNUdDlFdFRGTkh2NDMiXSwicm91dGluZ0tleXMiOltdfV19"
+
+        let expectation = TestHelper.expectation(description: "credential received")
+        let testDelegate = TestDelegate(expectation: expectation)
+        let agent = Agent(agentConfig: config, agentDelegate: testDelegate)
+        try await agent.initialize()
+
+        let faberInvitationUrl = "http://localhost:9001?oob=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvb3V0LW9mLWJhbmQvMS4xL2ludml0YXRpb24iLCJAaWQiOiI0N2Q3MTFiNS03OWMyLTQ2ZjctOWMxYy0xYjViMTllN2YyYmEiLCJsYWJlbCI6ImZhYmVyIiwiYWNjZXB0IjpbImRpZGNvbW0vYWlwMSIsImRpZGNvbW0vYWlwMjtlbnY9cmZjMTkiXSwiaGFuZHNoYWtlX3Byb3RvY29scyI6WyJodHRwczovL2RpZGNvbW0ub3JnL2RpZGV4Y2hhbmdlLzEuMCIsImh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wIl0sInNlcnZpY2VzIjpbeyJpZCI6IiNpbmxpbmUtMCIsInNlcnZpY2VFbmRwb2ludCI6Imh0dHA6Ly9sb2NhbGhvc3Q6OTAwMSIsInR5cGUiOiJkaWQtY29tbXVuaWNhdGlvbiIsInJlY2lwaWVudEtleXMiOlsiZGlkOmtleTp6Nk1rZzE3dk13QW8zTTFhWkZGcTRHREx0MlVxWnNrY1h1S1dXZnZ4NHNMenNDY3IiXSwicm91dGluZ0tleXMiOltdfV19"
+        let invitation = try OutOfBandInvitation.fromUrl(faberInvitationUrl)
+        print("Start connecting to faber")
+        _ = try await agent.oob.receiveInvitation(invitation)
+
+        try await TestHelper.wait(for: expectation, timeout: 120)
+        try await agent.reset()
+    }
+
+    // Run faber in AFJ/demo/ in legacy_connection branch
+    func testDemoFaberWithLegacyConnection() async throws {
         class TestDelegate: AgentDelegate {
             let expectation: TestHelper.XCTestExpectation
 
