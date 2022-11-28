@@ -1,10 +1,12 @@
 PODS:
-  - AriesFramework (1.1.0):
-    - BigInt (~> 5.2)
+  - AriesFramework (1.2.0):
+    - Base58Swift (~> 2.1)
     - CollectionConcurrencyKit (~> 0.2.0)
     - Indy (= 1.16.2)
     - WebSockets (~> 0.5.0)
-  - BigInt (5.2.0)
+  - Base58Swift (2.1.10):
+    - BigInt (~> 5.0.0)
+  - BigInt (5.0.0)
   - CollectionConcurrencyKit (0.2.0)
   - Indy (1.16.2):
     - libindy (= 1.16.0)
@@ -20,10 +22,11 @@ PODS:
   - WebSockets (0.5.0)
 
 DEPENDENCIES:
-  - AriesFramework (~> 1.1)
+  - AriesFramework (~> 1.2)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
+    - Base58Swift
     - BigInt
     - libsodium
     - OpenSSL-Universal
@@ -36,8 +39,9 @@ SPEC REPOS:
     - WebSockets
 
 SPEC CHECKSUMS:
-  AriesFramework: fd0ac16a9123c33bac6b9cc356356d7547799351
-  BigInt: f668a80089607f521586bbe29513d708491ef2f7
+  AriesFramework: 8c6461a82f3261f7a2c75f9bc63e28482dcfd98e
+  Base58Swift: 53d551f0b33d9478fa63b3445e453a772d6b31a7
+  BigInt: 74b4d88367b0e819d9f77393549226d36faeb0d8
   CollectionConcurrencyKit: 002045c2ec7e8861e14f8d817f5b68e6ce2f4d63
   Indy: 769a141f0d5b6dd27fdea2746c6346ef7eaefd5b
   libindy: 179f07d0e1498fab26aff37e154c017094ab76da
@@ -46,6 +50,6 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd
   WebSockets: 32c0aba46c23d11ad175c8da46e3f34657b17535
 
-PODFILE CHECKSUM: 76b2855f97df46a6b295fc6af3c9c3d318061f20
+PODFILE CHECKSUM: b355fe1d5258d6932109e2ad1320abb86a558af2
 
 COCOAPODS: 1.11.3
