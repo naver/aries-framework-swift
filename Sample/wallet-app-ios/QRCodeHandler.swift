@@ -12,8 +12,8 @@ class QRCodeHandler: QRScannerViewDelegate {
     public func receiveInvitation(url: String) {
         Task {
             do {
-                let connection = try await agent!.connections.receiveInvitationFromUrl(url)
-                await credentialHandler.showSimpleAlert(message: "Connected with \(connection.theirLabel ?? "unknown agent")")
+                let (_, connection) = try await agent!.oob.receiveInvitationFromUrl(url)
+                await credentialHandler.showSimpleAlert(message: "Connected with \(connection?.theirLabel ?? "unknown agent")")
             } catch {
                 print(error)
                 await credentialHandler.reportError()
