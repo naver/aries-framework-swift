@@ -114,7 +114,17 @@ public class OutOfBandCommand {
         - config: configuration of how out-of-band invitation should be received.
      - Returns: out-of-band record and connection record if one has been created.
     */
-    public func receiveInvitationFromUrl(_ url: String, config: ReceiveOutOfBandInvitationConfig? = nil) async throws -> (OutOfBandRecord, ConnectionRecord?) {
+    public func receiveInvitationFromUrl(_ url: String, config: ReceiveOutOfBandInvitationConfig? = nil) async throws -> (OutOfBandRecord?, ConnectionRecord?) {
+        let type = OutOfBandInvitation.getInvitationType(url: url)
+        if type == .Unknown {
+            throw AriesFrameworkError.frameworkError("Unsupported invitation type.")
+        }
+        if type == .Connection {
+            let connection = try await self.agent.connections.receiveInvitationFromUrl(url,
+                autoAcceptConnection: config?.autoAcceptConnection, alias: config?.alias)
+            return (nil, connection)
+        }
+
         let outOfBandInvitation = try OutOfBandInvitation.fromUrl(url)
         return try await receiveInvitation(outOfBandInvitation, config: config)
     }
