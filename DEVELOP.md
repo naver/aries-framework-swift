@@ -16,7 +16,8 @@ We use the forked version of [iOS wrapper](https://github.com/hyperledger/indy-s
 
 - [WebSockets](https://github.com/bhsw/concurrent-ws): Provides WebSocket API used in `WsOutboundTransport`. This library requires iOS 15.0+.
 - [CollectionConcurrencyKit](https://github.com/JohnSundell/CollectionConcurrencyKit): Provides concurrent map APIs used in `ProofService` and `RevocationService`.
-- [BigInt](https://github.com/attaswift/BigInt): Provides big interger types used in the `CredentialValues` struct to encode credential attributes as big integers.
+- [BigInt](https://github.com/attaswift/BigInt): Provides big interger types used in the `CredentialValues` struct to encode credential attributes as big integers. Note that `BigInt` is in the dependency of `Base58Swift`.
+- [Base58Swift](https://github.com/keefertaylor/Base58Swift): Provides Base58 encoding/decoding used in `DIDParser` to handle [did:key](https://w3c-ccg.github.io/did-method-key/) in out-of-band invitation.
 - [Criollo](https://github.com/thecatalinstan/Criollo): Provides HTTP server that can be used in unit tests. We use this library to implement a backchannel for [AATH](https://github.com/hyperledger/aries-agent-test-harness).
 
 WebSockets and CollectionConcurrencyKit are distributed only as Swift packages, so we made CocoaPods podspecs for them in our private Spec repo.
@@ -69,19 +70,20 @@ $ brew tap conanoc/libindy
 $ brew install --build-from-source libindy
 ```
 
-Cone the forked Aries Framework Javascript repository and checkout `legacy_connection` branch.
+Clone the Aries Framework Javascript repository.
 ```bash
-git clone https://github.com/conanoc/aries-framework-javascript.git
-git checkout legacy_connection
+git clone https://github.com/hyperledger/aries-framework-javascript.git
 ```
 
 Build and run the mediator.
 ```bash
-$ cd aries-framework-javascript/samples
-$ USE_LEGACY_INVITATION=1 npx ts-node mediator.ts
+$ cd aries-framework-javascript
+$ yarn install
+$ cd samples
+$ npx ts-node mediator.ts
 ```
 
-`testDemoFaber()` tests the credential exchange flow using WebSocket transport.
+`testDemoFaber()` tests the credential exchange flow.
 Run the faber agent in demo directory.
 ```bash
 $ cd aries-framework-javascript/demo
@@ -89,7 +91,8 @@ $ yarn install
 $ yarn faber
 ```
 
-Then, run `testDemoFaber()` and operate the faber agent to issue a credential.
+Then, get the invitation urls from the mediator and faber agent.
+Run `testDemoFaber()` with these urls and operate the faber agent to issue a credential.
 
 ### AATHTest preparation
 

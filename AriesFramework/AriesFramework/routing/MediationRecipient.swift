@@ -4,9 +4,10 @@ import os
 
 class MediationRecipient {
     let logger = Logger(subsystem: "AriesFramework", category: "MediationRecipient")
+    let mediationWaiter = AsyncWaiter()
+    let keylistWaiter = AsyncWaiter()
     let agent: Agent
     let repository: MediationRepository
-    var messagePickupInitiated = false
     var keylistUpdateDone = false
     var pickupTimer: Timer?
 
@@ -25,18 +26,40 @@ class MediationRecipient {
 
     func initialize(mediatorConnectionsInvite: String) async throws {
         logger.debug("Initialize mediation with invitation: \(mediatorConnectionsInvite)")
-        let invitation = try ConnectionInvitationMessage.fromUrl(mediatorConnectionsInvite)
+        let type = OutOfBandInvitation.getInvitationType(url: mediatorConnectionsInvite)
+        var recipientKey: String?
+        var invitation: ConnectionInvitationMessage?
+        var outOfBandInvitation: OutOfBandInvitation?
+        switch type {
+        case .Connection:
+            invitation = try ConnectionInvitationMessage.fromUrl(mediatorConnectionsInvite)
+            recipientKey = invitation!.recipientKeys?.first
+        case .OOB:
+            outOfBandInvitation = try OutOfBandInvitation.fromUrl(mediatorConnectionsInvite)
+            recipientKey = try outOfBandInvitation!.invitationKey()
+        default:
+            throw AriesFrameworkError.frameworkError("Unsupported invitation message: \(mediatorConnectionsInvite)")
+        }
 
-        guard let recipientKey = invitation.recipientKeys?.first else {
+        guard let recipientKey = recipientKey else {
             throw AriesFrameworkError.frameworkError("Invalid mediation invitation. Invitation must have at least one recipient key.")
         }
 
-        if let connection = try await agent.connectionService.findByInvitationKey(recipientKey), connection.isReady() {
+        if let connection = await agent.connectionService.findByInvitationKey(recipientKey), connection.isReady() {
             try await requestMediationIfNecessry(connection: connection)
         } else {
-            let invitationConnectionRecord = try await agent.connectionService.processInvitation(invitation, routing: self.getRouting(), autoAcceptConnection: true)
-            let message = try await agent.connectionService.createRequest(connectionId: invitationConnectionRecord.id)
+            let connection = try await agent.connectionService.processInvitation(invitation,
+                outOfBandInvitation: outOfBandInvitation, routing: self.getRouting(), autoAcceptConnection: true)
+            let message = try await agent.connectionService.createRequest(connectionId: connection.id)
             try await agent.messageSender.send(message: message)
+
+            if try await agent.connectionService.fetchState(connectionRecord: connection) != .Complete {
+                let result = try await agent.connectionService.waitForConnection()
+                if !result {
+                    throw AriesFrameworkError.frameworkError("Connection to the mediator timed out.")
+                }
+            }
+            try await requestMediationIfNecessry(connection: connection)
         }
     }
 
@@ -45,11 +68,6 @@ class MediationRecipient {
     }
 
     func requestMediationIfNecessry(connection: ConnectionRecord) async throws {
-        if (messagePickupInitiated || agent.agentConfig.mediatorConnectionsInvite == nil) {
-            agent.setInitialized()
-            return
-        }
-
         if let mediationRecord = try await repository.getDefault() {
             if mediationRecord.isReady() && hasSameInvitationUrl(record: mediationRecord) {
                 try await initiateMessagePickup(mediator: mediationRecord)
@@ -60,8 +78,22 @@ class MediationRecipient {
             try await repository.delete(mediationRecord)
         }
 
+        // If mediation request has not been done yet, start it.
         let message = try await createRequest(connection: connection)
         try await agent.messageSender.send(message: message)
+
+        var mediationRecord = try await repository.getByConnectionId(connection.id)
+        if mediationRecord.state == .Requested {
+            let result = try await mediationWaiter.wait()
+            if !result {
+                throw AriesFrameworkError.frameworkError("Mediation request timed out.")
+            }
+        }
+        mediationRecord = try await repository.getByConnectionId(connection.id)
+        if mediationRecord.state == .Denied {
+            throw AriesFrameworkError.frameworkError("Mediation request denied.")
+        }
+        try mediationRecord.assertReady()
     }
 
     func hasSameInvitationUrl(record: MediationRecord) -> Bool {
@@ -69,7 +101,6 @@ class MediationRecipient {
     }
 
     func initiateMessagePickup(mediator: MediationRecord) async throws {
-        messagePickupInitiated = true
         let mediatorConnection = try await agent.connectionRepository.getById(mediator.connectionId)
         try await self.pickupMessages(mediatorConnection: mediatorConnection)
 
@@ -97,10 +128,6 @@ class MediationRecipient {
     }
 
     func pickupMessages() async throws {
-        if (messagePickupInitiated || agent.agentConfig.mediatorConnectionsInvite == nil) {
-            return
-        }
-
         guard let mediator = try await repository.getDefault() else {
             throw AriesFrameworkError.frameworkError("Mediator is not ready.")
         }
@@ -141,8 +168,9 @@ class MediationRecipient {
         mediationRecord.routingKeys = message.routingKeys
         mediationRecord.state = .Granted
         try await repository.update(mediationRecord)
-        agent.setInitialized()
         agent.agentDelegate?.onMediationStateChanged(mediationRecord: mediationRecord)
+        agent.setInitialized()
+        mediationWaiter.finish()
         try await initiateMessagePickup(mediator: mediationRecord)
     }
 
@@ -154,6 +182,7 @@ class MediationRecipient {
         mediationRecord.state = .Denied
         try await repository.update(mediationRecord)
         agent.agentDelegate?.onMediationStateChanged(mediationRecord: mediationRecord)
+        mediationWaiter.finish()
     }
 
     func processBatchMessage(messageContext: InboundMessageContext) async throws {
@@ -167,7 +196,7 @@ class MediationRecipient {
         logger.debug("Get \(message.messages.count) batch messages")
         let forwardedMessages = message.messages
         for forwardedMessage in forwardedMessages {
-            try await agent.messageReceiver.receiveMessage(forwardedMessage.message)
+            try await agent.receiveMessage(forwardedMessage.message)
         }
     }
 
@@ -186,6 +215,7 @@ class MediationRecipient {
             }
         }
         keylistUpdateDone = true
+        keylistWaiter.finish()
     }
 
     func keylistUpdate(mediator: MediationRecord, verkey: String) async throws {
@@ -196,10 +226,12 @@ class MediationRecipient {
 
         keylistUpdateDone = false
         try await agent.messageSender.send(message: message)
+
         if (!keylistUpdateDone) {
-            // This is not guaranteed when the outbound transport is WebSocket.
-            // throw AriesFrameworkError.frameworkError("Keylist update not finished")
-            logger.warning("Keylist update not finished")
+            let result = try await keylistWaiter.wait()
+            if !result {
+                throw AriesFrameworkError.frameworkError("Keylist update timed out")
+            }
         }
     }
 }

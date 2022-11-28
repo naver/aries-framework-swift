@@ -22,7 +22,21 @@ public class MessageReceiver {
                                                        recipientVerkey: decryptedMessage.recipientKey)
             try await agent.dispatcher.dispatch(messageContext: messageContext)
         } catch {
-            logger.error("failed to receive message: \(error.localizedDescription)")
+            logger.error("failed to receive message: \(error)")
+        }
+    }
+
+    func receivePlaintextMessage(_ plaintextMessage: String, connection: ConnectionRecord) async throws {
+        do {
+            let message = try decodeAgentMessage(plaintextMessage: plaintextMessage)
+            let messageContext = InboundMessageContext(message: message,
+                                                       plaintextMessage: plaintextMessage,
+                                                       connection: connection,
+                                                       senderVerkey: nil,
+                                                       recipientVerkey: nil)
+            try await agent.dispatcher.dispatch(messageContext: messageContext)
+        } catch {
+            logger.error("failed to receive message: \(error)")
         }
     }
 

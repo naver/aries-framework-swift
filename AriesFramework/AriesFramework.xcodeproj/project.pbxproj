@@ -99,6 +99,7 @@
 		BB63DC322897C96F00BDF91E /* TrustPingMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB63DC312897C96F00BDF91E /* TrustPingMessageHandler.swift */; };
 		BB655FAD28B3542300A919E8 /* RevocationRegistryDelta.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB655FAC28B3542300A919E8 /* RevocationRegistryDelta.swift */; };
 		BB655FAF28B3668800A919E8 /* ProofCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB655FAE28B3668800A919E8 /* ProofCommand.swift */; };
+		BB7765352922215F0007B678 /* AsyncWaiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7765342922215F0007B678 /* AsyncWaiter.swift */; };
 		BB7A0338288F8FF900D53822 /* CredentialValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7A0337288F8FF900D53822 /* CredentialValues.swift */; };
 		BB7A033A288FAD6200D53822 /* CredentialValuesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7A0339288FAD6200D53822 /* CredentialValuesTest.swift */; };
 		BB7A033E2891259500D53822 /* PresentationAckMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7A033D2891259500D53822 /* PresentationAckMessage.swift */; };
@@ -283,6 +284,7 @@
 		BB63DC312897C96F00BDF91E /* TrustPingMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustPingMessageHandler.swift; sourceTree = "<group>"; };
 		BB655FAC28B3542300A919E8 /* RevocationRegistryDelta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevocationRegistryDelta.swift; sourceTree = "<group>"; };
 		BB655FAE28B3668800A919E8 /* ProofCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofCommand.swift; sourceTree = "<group>"; };
+		BB7765342922215F0007B678 /* AsyncWaiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncWaiter.swift; sourceTree = "<group>"; };
 		BB7A0337288F8FF900D53822 /* CredentialValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialValues.swift; sourceTree = "<group>"; };
 		BB7A0339288FAD6200D53822 /* CredentialValuesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialValuesTest.swift; sourceTree = "<group>"; };
 		BB7A033D2891259500D53822 /* PresentationAckMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationAckMessage.swift; sourceTree = "<group>"; };
@@ -525,6 +527,7 @@
 			isa = PBXGroup;
 			children = (
 				BB14AB6528573BC300C04EE0 /* DIDParser.swift */,
+				BB7765342922215F0007B678 /* AsyncWaiter.swift */,
 			);
 			path = util;
 			sourceTree = "<group>";
@@ -1254,6 +1257,7 @@
 				BB7C768F28B4700E00C1AA96 /* PresentationHandler.swift in Sources */,
 				BB14157D286ADD9700235480 /* CredentialExchangeRecord.swift in Sources */,
 				BB7C769628B4B4F800C1AA96 /* IndyCredential.swift in Sources */,
+				BB7765352922215F0007B678 /* AsyncWaiter.swift in Sources */,
 				BB1814DF285B0A8A00BD4A05 /* HandshakeReuseAcceptedHandler.swift in Sources */,
 				BB2392FA282E3DB00056B55D /* MediationDenyHandler.swift in Sources */,
 				BBB4E5EB28A4FF8F007DF641 /* IndyCredentialInfo.swift in Sources */,

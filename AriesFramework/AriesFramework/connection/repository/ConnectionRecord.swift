@@ -19,6 +19,7 @@ public struct ConnectionRecord: BaseRecord {
     public var theirLabel: String?
 
     var invitation: ConnectionInvitationMessage?
+    var outOfBandInvitation: OutOfBandInvitation?
     public var alias: String?
     var autoAcceptConnection: Bool?
     var imageUrl: String?
@@ -33,7 +34,7 @@ public struct ConnectionRecord: BaseRecord {
 
 extension ConnectionRecord: Codable {
     enum CodingKeys: String, CodingKey {
-        case id, createdAt, updatedAt, state, role, didDoc, did, verkey, theirDidDoc, theirDid, theirLabel, invitation, alias, autoAcceptConnection, imageUrl, multiUseInvitation, threadId, mediatorId, errorMessage
+        case id, createdAt, updatedAt, state, role, didDoc, did, verkey, theirDidDoc, theirDid, theirLabel, invitation, outOfBandInvitation, alias, autoAcceptConnection, imageUrl, multiUseInvitation, threadId, mediatorId, errorMessage
     }
 
     init(
@@ -47,6 +48,7 @@ extension ConnectionRecord: Codable {
         theirDid: String? = nil,
         theirLabel: String? = nil,
         invitation: ConnectionInvitationMessage? = nil,
+        outOfBandInvitation: OutOfBandInvitation? = nil,
         alias: String? = nil,
         autoAcceptConnection: Bool? = nil,
         imageUrl: String? = nil,
@@ -71,6 +73,7 @@ extension ConnectionRecord: Codable {
         self.theirLabel = theirLabel
 
         self.invitation = invitation
+        self.outOfBandInvitation = outOfBandInvitation
         self.alias = alias
         self.autoAcceptConnection = autoAcceptConnection
         self.imageUrl = imageUrl
@@ -89,6 +92,8 @@ extension ConnectionRecord: Codable {
 
         if let invitationKey = self.invitation?.recipientKeys?[0] {
             tags["invitationKey"] = invitationKey
+        } else if let invitationKey = try? self.outOfBandInvitation?.invitationKey() {
+            tags["invitationKey"] = invitationKey
         }
 
         tags["threadId"] = self.threadId
@@ -100,7 +105,7 @@ extension ConnectionRecord: Codable {
 
         return tags
     }
-    
+
     func myKey() -> String? {
         guard let service = didDoc.didCommServices().first else {
             return nil

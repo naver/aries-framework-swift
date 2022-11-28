@@ -10,7 +10,9 @@ class TrustPingMessageHandler: MessageHandler {
     }
 
     func handle(messageContext: InboundMessageContext) async throws -> OutboundMessage? {
-        // Just ignore the TrustPingMessage
+        if var connection = messageContext.connection, connection.state == .Responded {
+            try await agent.connectionService.updateState(connectionRecord: &connection, newState: .Complete)
+        }
         return nil
     }
 }

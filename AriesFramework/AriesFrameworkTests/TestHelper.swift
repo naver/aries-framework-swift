@@ -141,9 +141,13 @@ class TestHelper {
         return outOfBandRecord
     }
 
-    static func isConnectedWith(received: ConnectionRecord, connection: ConnectionRecord) throws -> Bool {
-        try received.assertReady()
-        try connection.assertReady()
+    static func isConnectedWith(received: ConnectionRecord, connection: ConnectionRecord) -> Bool {
+        do {
+            try received.assertReady()
+            try connection.assertReady()
+        } catch {
+            return false
+        }
 
         return (received.theirDid == connection.did && received.theirKey() == connection.verkey)
     }

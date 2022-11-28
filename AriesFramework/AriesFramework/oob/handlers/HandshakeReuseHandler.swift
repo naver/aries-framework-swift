@@ -10,6 +10,9 @@ class HandshakeReuseHandler: MessageHandler {
     }
 
     func handle(messageContext: InboundMessageContext) async throws -> OutboundMessage? {
-        return nil
+        let connectionRecord = try messageContext.assertReadyConnection()
+        let message = try await agent.outOfBandService.processHandshakeReuse(messageContext: messageContext)
+
+        return OutboundMessage(payload: message, connection: connectionRecord)
     }
 }

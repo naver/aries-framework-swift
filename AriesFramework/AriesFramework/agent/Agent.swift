@@ -92,9 +92,11 @@ public class Agent {
      Remove the wallet and ledger data. This makes the agent as if it was never initialized.
     */
     public func reset() async throws {
+        if isInitialized() {
+            try await shutdown()
+        }
         try await wallet.delete()
         try await ledgerService.delete()
-        self._isInitialized = false
     }
 
     /**

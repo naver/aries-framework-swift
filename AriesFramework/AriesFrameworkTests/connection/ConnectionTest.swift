@@ -46,7 +46,7 @@ class ConnectionTest: XCTestCase {
         let faberAliceConnection1 = try await faberAgent.connectionService.getByThreadId(aliceFaberConnection1.threadId!)
         let faberAliceConnection2 = try await faberAgent.connectionService.getByThreadId(aliceFaberConnection2.threadId!)
 
-        XCTAssertEqual(try? TestHelper.isConnectedWith(received: faberAliceConnection1, connection: aliceFaberConnection1), true)
-        XCTAssertEqual(try? TestHelper.isConnectedWith(received: faberAliceConnection2, connection: aliceFaberConnection2), true)
+        XCTAssertEqual(TestHelper.isConnectedWith(received: faberAliceConnection1, connection: aliceFaberConnection1), true)
+        XCTAssertEqual(TestHelper.isConnectedWith(received: faberAliceConnection2, connection: aliceFaberConnection2), true)
     }
 }

@@ -121,6 +121,7 @@ class OutOfBandInvitationTest: XCTestCase {
 
         let invitation = try OutOfBandInvitation.fromJson(json)
         XCTAssertEqual(try invitation.fingerprints(), ["z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th", "123", "456"])
+        XCTAssertEqual(try invitation.invitationKey(), try DIDParser.ConvertFingerprintToVerkey(fingerprint: "z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"))
     }
 
     func testRequests() throws {

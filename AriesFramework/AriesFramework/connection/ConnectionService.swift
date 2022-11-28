@@ -1,5 +1,6 @@
 
 import Foundation
+import os
 
 public struct Routing {
     let endpoints : [String]
@@ -12,6 +13,8 @@ public struct Routing {
 public class ConnectionService {
     let agent: Agent
     let connectionRepository: ConnectionRepository
+    let connectionWaiter = AsyncWaiter()
+    let logger = Logger(subsystem: "AriesFramework", category: "ConnectionService")
 
     init(agent: Agent) {
         self.agent = agent
@@ -67,34 +70,49 @@ public class ConnectionService {
     }
 
     /**
-     Process a received invitation message. This will not accept the invitation
+     Process a received invitation message. The invitation message should be either a connection
+     invitation or an out of band invitation. This will not accept the invitation
      or send an invitation request message. It will only create a connection record
-     with all the information about the invitation stored. Use ConnectionService.createRequest
+     with all the information about the invitation stored.
+     Use ``createRequest(connectionId:label:imageUrl:autoAcceptConnection:)``
      after calling this function to create a connection request.
 
      - Parameters:
+       - invitation: optional invitation message to process.
+       - outOfBandInvitation: optional out of band invitation to process.
        - routing: routing information for the connection.
        - autoAcceptConnection: whether to auto accept the connection response.
        - alias: alias for the connection.
      - Returns: new connection record.
     */
     public func processInvitation(
-        _ invitation: ConnectionInvitationMessage,
+        _ invitation: ConnectionInvitationMessage? = nil,
+        outOfBandInvitation: OutOfBandInvitation? = nil,
         routing: Routing,
         autoAcceptConnection: Bool? = nil,
         alias: String? = nil) async throws -> ConnectionRecord {
+
+        if (invitation == nil && outOfBandInvitation == nil) || (invitation != nil && outOfBandInvitation != nil) {
+            throw AriesFrameworkError.frameworkError("Either invitation or outOfBandInvitation must be set, but not both.")
+        }
+
+        if let outOfBandInvitation = outOfBandInvitation {
+            if try outOfBandInvitation.invitationKey() == nil {
+                throw AriesFrameworkError.frameworkError("Out of band invitation does not contain any invitation key.")
+            }
+        }
 
         let connectionRecord = try await self.createConnection(
             role: ConnectionRole.Invitee,
             state: ConnectionState.Invited,
             invitation: invitation,
+            outOfBandInvitation: outOfBandInvitation,
             alias: alias,
             routing: routing,
-            theirLabel: invitation.label,
+            theirLabel: invitation?.label ?? outOfBandInvitation?.label,
             autoAcceptConnection: autoAcceptConnection,
             multiUseInvitation: false,
-            tags: (invitation.recipientKeys != nil) ? ["invitationKey": invitation.recipientKeys![0]] : nil,
-            imageUrl: invitation.imageUrl,
+            imageUrl: invitation?.imageUrl ?? outOfBandInvitation?.imageUrl,
             threadId: nil)
 
         try await self.connectionRepository.save(connectionRecord)
@@ -106,13 +124,14 @@ public class ConnectionService {
     private func createConnection(
         role: ConnectionRole,
         state: ConnectionState,
-        invitation: ConnectionInvitationMessage?,
+        invitation: ConnectionInvitationMessage? = nil,
+        outOfBandInvitation: OutOfBandInvitation? = nil,
         alias: String?,
         routing: Routing,
         theirLabel: String?,
         autoAcceptConnection: Bool?,
         multiUseInvitation: Bool,
-        tags: Tags?,
+        tags: Tags? = nil,
         imageUrl: String?,
         threadId: String?) async throws -> ConnectionRecord {
 
@@ -146,6 +165,7 @@ public class ConnectionService {
             verkey: routing.verkey,
             theirLabel: theirLabel,
             invitation: invitation,
+            outOfBandInvitation: outOfBandInvitation,
             alias: alias,
             autoAcceptConnection: autoAcceptConnection,
             imageUrl: imageUrl,
@@ -165,7 +185,7 @@ public class ConnectionService {
        - autoAcceptConnection: whether to automatically accept the connection response.
      - Returns: outbound message containing connection request.
     */
-    func createRequest(
+    public func createRequest(
         connectionId: String,
         label: String? = nil,
         imageUrl: String? = nil,
@@ -193,15 +213,13 @@ public class ConnectionService {
     /**
      Process a received connection request message. This will not accept the connection request
      or send a connection response message. It will only update the existing connection record
-     with all the new information from the connection request message. Use ConnectionService.createResponse
+     with all the new information from the connection request message. Use ``createResponse(connectionId:)``
      after calling this function to create a connection response.
 
-     - Parameters:
-       - messageContext: the message context containing the connection request message.
-       - routing: routing information for the connection. This should not be nil if the request is for the multi-use invitation.
-    - Returns: updated connection record.
+     - Parameter messageContext: the message context containing the connection request message.
+     - Returns: updated connection record.
     */
-    public func processRequest(messageContext: InboundMessageContext, routing: Routing?) async throws -> ConnectionRecord {
+    public func processRequest(messageContext: InboundMessageContext) async throws -> ConnectionRecord {
         let decoder = JSONDecoder()
         let message = try decoder.decode(ConnectionRequestMessage.self, from: Data(messageContext.plaintextMessage.utf8))
 
@@ -209,47 +227,48 @@ public class ConnectionService {
             throw AriesFrameworkError.frameworkError("Unable to process connection request without senderVerkey or recipientVerkey")
         }
 
-        guard var connectionRecord = try await findByInvitationKey(recipientKey) else {
-            throw AriesFrameworkError.frameworkError("Unable to process Connection for recipientKey \(recipientKey) not found!")
-        }
-        assert(connectionRecord.state == ConnectionState.Invited)
-        assert(connectionRecord.role == ConnectionRole.Inviter)
-
         if (message.connection.didDoc == nil) {
             throw AriesFrameworkError.frameworkError("Public DIDs are not supported yet")
         }
 
-        if (connectionRecord.multiUseInvitation) {
-            if routing == nil {
-                throw AriesFrameworkError.frameworkError("Cannot process request for multi-use invitation without routing object. Make sure to call processRequest with the routing parameter provided.")
+        var connectionRecord = await findByInvitationKey(recipientKey)
+        var outOfBandRecord: OutOfBandRecord?
+        if connectionRecord == nil {
+            outOfBandRecord = try await agent.outOfBandService.findByInvitationKey(recipientKey)
+            if outOfBandRecord == nil {
+                throw AriesFrameworkError.frameworkError("No out-of-band record found for invitation key: \(recipientKey)")
             }
+        }
 
+        if (connectionRecord == nil || connectionRecord!.multiUseInvitation) {
             connectionRecord = try await createConnection(
-                role: connectionRecord.role,
-                state: connectionRecord.state,
-                invitation: connectionRecord.invitation,
+                role: .Inviter,
+                state: .Invited,
+                invitation: connectionRecord?.invitation,
+                outOfBandInvitation: outOfBandRecord?.outOfBandInvitation,
                 alias: nil,
-                routing: routing!,
+                routing: agent.mediationRecipient.getRouting(),
                 theirLabel: message.label,
-                autoAcceptConnection: connectionRecord.autoAcceptConnection,
-                multiUseInvitation: false,
-                tags: connectionRecord.getTags(),
+                autoAcceptConnection: connectionRecord?.autoAcceptConnection ?? outOfBandRecord?.autoAcceptConnection,
+                multiUseInvitation: true,
                 imageUrl: message.imageUrl,
                 threadId: message.threadId)
+
+            try await self.connectionRepository.save(connectionRecord!)
         }
 
-        connectionRecord.theirDidDoc = message.connection.didDoc
-        connectionRecord.theirLabel = message.label
-        connectionRecord.threadId = message.id
-        connectionRecord.theirDid = message.connection.did
-        connectionRecord.imageUrl = message.imageUrl
+        connectionRecord!.theirDidDoc = message.connection.didDoc
+        connectionRecord!.theirLabel = message.label
+        connectionRecord!.threadId = message.id
+        connectionRecord!.theirDid = message.connection.did
+        connectionRecord!.imageUrl = message.imageUrl
 
-        if connectionRecord.theirKey() == nil {
-            throw AriesFrameworkError.frameworkError("Connection with id \(connectionRecord.id) has no recipient keys.")
+        if connectionRecord!.theirKey() == nil {
+            throw AriesFrameworkError.frameworkError("Connection with id \(connectionRecord!.id) has no recipient keys.")
         }
 
-        try await updateState(connectionRecord: &connectionRecord, newState: ConnectionState.Requested)
-        return connectionRecord
+        try await updateState(connectionRecord: &connectionRecord!, newState: .Requested)
+        return connectionRecord!
     }
 
     /**
@@ -283,7 +302,7 @@ public class ConnectionService {
     /**
      Process a received connection response message. This will not accept the connection response
      or send a connection acknowledgement message. It will only update the existing connection record
-     with all the new information from the connection response message. Use ConnectionService.createTrustPing()
+     with all the new information from the connection response message. Use ``createTrustPing(connectionId:responseRequested:comment:)``
      after calling this function to create a trust ping message.
 
      - Parameter messageContext: the message context containing a connection response message.
@@ -347,21 +366,49 @@ public class ConnectionService {
         return OutboundMessage(payload: trustPing, connection: connectionRecord)
     }
 
-
     func updateState(connectionRecord: inout ConnectionRecord, newState: ConnectionState) async throws {
         connectionRecord.state = newState
         try await self.connectionRepository.update(connectionRecord)
+        if (newState == ConnectionState.Complete) {
+            finishConnectionWaiter()
+        }
         agent.agentDelegate?.onConnectionStateChanged(connectionRecord: connectionRecord)
     }
 
+    func fetchState(connectionRecord: ConnectionRecord) async throws -> ConnectionState {
+        if (connectionRecord.state == ConnectionState.Complete) {
+            return connectionRecord.state
+        }
+
+        let connection = try await connectionRepository.getById(connectionRecord.id)
+        return connection.state
+    }
+
     /**
-     Find connection by invitation key.
+     Find a connection by invitation key. If there are multiple connections with the same invitation key,
+     the first one will be returned.
 
      - Parameter key: the invitation key to search for.
      - Returns: the connection record, if found.
     */
-    public func findByInvitationKey(_ key: String) async throws -> ConnectionRecord? {
-        return try await self.connectionRepository.findSingleByQuery("""
+    public func findByInvitationKey(_ key: String) async -> ConnectionRecord? {
+        let connections = await self.connectionRepository.findByQuery("""
+            {"invitationKey": "\(key)"}
+            """)
+        if (connections.count == 0) {
+            return nil
+        }
+        return connections[0]
+    }
+
+    /**
+     Find all connections by invitation key.
+
+     - Parameter key: the invitation key to search for.
+     - Returns: the connection record, if found.
+    */
+    public func findAllByInvitationKey(_ key: String) async -> [ConnectionRecord] {
+        return await self.connectionRepository.findByQuery("""
             {"invitationKey": "\(key)"}
             """)
     }
@@ -390,5 +437,13 @@ public class ConnectionService {
         return try await self.connectionRepository.findSingleByQuery("""
             {"verkey": "\(recipientKey)", "theirKey": "\(senderKey)"}
             """)
+    }
+
+    func waitForConnection() async throws -> Bool {
+        return try await connectionWaiter.wait()
+    }
+
+    private func finishConnectionWaiter() {
+        connectionWaiter.finish()
     }
 }

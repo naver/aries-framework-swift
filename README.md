@@ -13,14 +13,12 @@ Aries Framework Swift supports most of [AIP 1.0](https://github.com/hyperledger/
 - ✅ ([RFC 0036](https://github.com/hyperledger/aries-rfcs/blob/master/features/0036-issue-credential/README.md)) Issue Credential Protocol
 - ✅ ([RFC 0037](https://github.com/hyperledger/aries-rfcs/tree/master/features/0037-present-proof/README.md)) Present Proof Protocol
 - ✅ HTTP & WebSocket Transport
-
-### Under development
-- 🚧 ([RFC 0023](https://github.com/hyperledger/aries-rfcs/tree/main/features/0023-did-exchange)) DID Exchange Protocol (AIP 2.0)
-- 🚧 ([RFC 0434](https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md)) Out of Band Protocol (AIP 2.0)
+- ✅ ([RFC 0434](https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md)) Out of Band Protocol (AIP 2.0)
 
 ### Not supported yet
-- ❌ Report Problem Protocol ([RFC 0035](https://github.com/hyperledger/aries-rfcs/blob/main/features/0035-report-problem/README.md))
-- ❌ Service Decorator ([RFC 0056](https://github.com/hyperledger/aries-rfcs/blob/main/features/0056-service-decorator/README.md))
+- ❌ ([RFC 0023](https://github.com/hyperledger/aries-rfcs/tree/main/features/0023-did-exchange)) DID Exchange Protocol (AIP 2.0)
+- ❌ ([RFC 0035](https://github.com/hyperledger/aries-rfcs/blob/main/features/0035-report-problem/README.md)) Report Problem Protocol
+- ❌ ([RFC 0056](https://github.com/hyperledger/aries-rfcs/blob/main/features/0056-service-decorator/README.md)) Service Decorator
 
 ## Requirements & Installation
 
@@ -76,18 +74,18 @@ A genesis file for the indy pool should be included as a resource in the app bun
 ```
 
 If you want to use a mediator, set the `mediatorConnectionsInvite` in the config.
-`mediatorConnectionsInvite` is the url containing the invitation message encoded in a `c_i` parameter.
+`mediatorConnectionsInvite` is a url containing either a connection invitation or an out-of-band invitation.
 `mediatorPickupStrategy` need to be `.Implicit` to connect to an ACA-Py mediator.
 
 You can use WebSocket transport without a mediator, but you will need a mediator if the counterparty agent only supports http transport.
 
 `agentDelegate` can be nil if you don't want to receive any events from the agent.
 
-### Create a connection
+### Receive an invitation
 
 Create a connection by receiving a connection invitation.
 ```swift
-    let connection = try await agent.connections.receiveInvitationFromUrl(invitationUrl)
+    let (_, connection) = try await agent.oob.receiveInvitationFromUrl(url)
 ```
 
 You will generally get the invitation url by QR code scanning.

@@ -28,13 +28,13 @@ public struct CreateProposalOptions {
 }
 
 public struct CreateOfferOptions {
-    public var connection: ConnectionRecord
+    public var connection: ConnectionRecord?
     public var credentialDefinitionId: String
     public var attributes: [CredentialPreviewAttribute]
     public var autoAcceptCredential: AutoAcceptCredential?
     public var comment: String?
 
-    public init(connection: ConnectionRecord, credentialDefinitionId: String, attributes: [CredentialPreviewAttribute], autoAcceptCredential: AutoAcceptCredential? = nil, comment: String? = nil) {
+    public init(connection: ConnectionRecord? = nil, credentialDefinitionId: String, attributes: [CredentialPreviewAttribute], autoAcceptCredential: AutoAcceptCredential? = nil, comment: String? = nil) {
         self.connection = connection
         self.credentialDefinitionId = credentialDefinitionId
         self.attributes = attributes

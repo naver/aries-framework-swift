@@ -61,7 +61,7 @@ extension CredentialExchangeRecord: Codable {
         let credentialIds = self.credentials.map { $0.credentialRecordId }
 
         tags["threadId"] = self.threadId
-        tags["connectionId"] = self.connectionId
+        tags["connectionId"] = connectionId
         tags["state"] = self.state.rawValue
         tags["credentialIds"] = credentialIds.joined(separator: ",")
 
