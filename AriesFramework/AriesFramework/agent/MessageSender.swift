@@ -22,7 +22,7 @@ public class MessageSender {
     func outboundTransportForEndpoint(_ endpoint: String) -> OutboundTransport? {
         if defaultOutboundTransport != nil {
             return defaultOutboundTransport
-        } else if (endpoint.hasPrefix("http://") || endpoint.hasPrefix("https://")) && (agent.agentConfig.mediatorConnectionsInvite != nil || agent.agentConfig.agentEndpoints != nil ) {
+        } else if (endpoint.hasPrefix("http://") || endpoint.hasPrefix("https://")) {
             return httpOutboundTransport
         } else if endpoint.hasPrefix("ws://") || endpoint.hasPrefix("wss://") {
             return wsOutboundTransport
