@@ -13,7 +13,7 @@ public class OutOfBandInvitation: AgentMessage {
     var imageUrl: String?
 
     private enum CodingKeys : String, CodingKey {
-        case label, goalCode = "goal_code", goal, accept, handshakeProtocols = "handshake_protocols", requests = "requests", services, imageUrl
+        case label, goalCode = "goal_code", goal, accept, handshakeProtocols = "handshake_protocols", requests = "requests~attach", services, imageUrl
     }
 
     public init(id: String, label: String, goalCode: String? = nil, goal: String? = nil, accept: [String]? = nil, handshakeProtocols: [HandshakeProtocol]? = nil, requests: [Attachment]? = nil, services: [OutOfBandDidCommService] = [], imageUrl: String? = nil) {
@@ -83,7 +83,7 @@ public class OutOfBandInvitation: AgentMessage {
     public static func fromUrl(_ invitationUrl: String) throws -> OutOfBandInvitation {
         let parsedUrl = URLComponents(string: invitationUrl)
         let encodedInvitation = parsedUrl?.queryItems?.first(where: { $0.name == "oob" })?.value
-        if let encodedInvitation = encodedInvitation, let data = Data(base64Encoded: encodedInvitation) {
+        if let encodedInvitation = encodedInvitation, let data = Data(base64Encoded: encodedInvitation.base64urlToBase64()) {
             let invitationJson = try JSONDecoder().decode(OutOfBandInvitation.self, from: data)
             return invitationJson
         } else {
