@@ -17,11 +17,11 @@ class OobTest: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
-        let faberConfig = try TestHelper.getBaseConfig(name: "faber", useLedgerSerivce: false)
+        let faberConfig = try TestHelper.getBaseConfig(name: "faber")
         faberAgent = Agent(agentConfig: faberConfig, agentDelegate: nil)
         try await faberAgent.initialize()
 
-        let aliceConfig = try TestHelper.getBaseConfig(name: "alice", useLedgerSerivce: false)
+        let aliceConfig = try TestHelper.getBaseConfig(name: "alice")
         aliceAgent = Agent(agentConfig: aliceConfig, agentDelegate: nil)
         try await aliceAgent.initialize()
 

@@ -20,7 +20,8 @@ class ConnectionServiceTest: XCTestCase {
             genesisPath: "", poolName: "pool_id",
             mediatorConnectionsInvite: nil, label: "Default Agent",
             autoAcceptConnections: true,
-            connectionImageUrl: connectionImageUrl
+            connectionImageUrl: connectionImageUrl,
+            useLedgerSerivce: false
         )
 
         routing = Routing(

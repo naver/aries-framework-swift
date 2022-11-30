@@ -36,7 +36,7 @@ class TestHelper {
         }
     }
 
-    static func getBaseConfig(name: String, useLedgerSerivce: Bool = true) throws -> AgentConfig {
+    static func getBaseConfig(name: String, useLedgerSerivce: Bool = false) throws -> AgentConfig {
         let key = "HfyxAyKK8Z2xVzWbXXy2erY32B9Bnr8WFgR5HfzjAnGx"
         guard let genesisPath = Bundle(for: TestHelper.self).path(forResource: "local-genesis", ofType: "txn") else {
             throw AriesFrameworkError.frameworkError("Cannot find local-genesis.txn")
@@ -58,7 +58,7 @@ class TestHelper {
         guard let genesisPath = Bundle(for: TestHelper.self).path(forResource: "bcovrin-genesis", ofType: "txn") else {
             throw AriesFrameworkError.frameworkError("Cannot find bcovrin-genesis.txn")
         }
-        var config = try getBaseConfig(name: name)
+        var config = try getBaseConfig(name: name, useLedgerSerivce: true)
         config.genesisPath = genesisPath
         config.autoAcceptCredential = .always
 
@@ -153,8 +153,8 @@ class TestHelper {
     }
 
     static func setupCredentialTests() async throws -> (Agent, Agent, String, ConnectionRecord, ConnectionRecord) {
-        let faberConfig = try TestHelper.getBaseConfig(name: "faber")
-        let aliceConfig = try TestHelper.getBaseConfig(name: "alice")
+        let faberConfig = try TestHelper.getBaseConfig(name: "faber", useLedgerSerivce: true)
+        let aliceConfig = try TestHelper.getBaseConfig(name: "alice", useLedgerSerivce: true)
 
         let faberAgent = Agent(agentConfig: faberConfig, agentDelegate: nil)
         let aliceAgent = Agent(agentConfig: aliceConfig, agentDelegate: nil)

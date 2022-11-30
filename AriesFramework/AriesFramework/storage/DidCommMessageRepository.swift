@@ -2,6 +2,10 @@
 import Foundation
 
 public class DidCommMessageRepository: Repository<DidCommMessageRecord> {
+    public override func save(_ record: DidCommMessageRecord) async throws {
+        throw AriesFrameworkError.frameworkError("Do not call save() directly. We need to change the prefix of the message type before save the record.")
+    }
+
     public func saveAgentMessage(role: DidCommMessageRole, agentMessage: AgentMessage, associatedRecordId: String) async throws {
         if self.agent.agentConfig.useLegacyDidSovPrefix {
             agentMessage.replaceNewDidCommPrefixWithLegacyDidSov()
@@ -12,7 +16,7 @@ public class DidCommMessageRepository: Repository<DidCommMessageRecord> {
             associatedRecordId: associatedRecordId
         )
 
-        try await save(didCommMessageRecord)
+        try await super.save(didCommMessageRecord)
     }
 
     public func saveOrUpdateAgentMessage(role: DidCommMessageRole, agentMessage: AgentMessage, associatedRecordId: String) async throws {

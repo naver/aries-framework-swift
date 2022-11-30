@@ -39,7 +39,7 @@ class DidCommMessageRepositoryTest: XCTestCase {
 
     func testGetAgentMessage() async throws {
         let record = getRecord()
-        try await repository.save(record)
+        try await repository.saveAgentMessage(role: .Receiver, agentMessage: invitation, associatedRecordId: record.associatedRecordId!)
 
         let message = try await repository.getAgentMessage(associatedRecordId: record.associatedRecordId!, messageType: ConnectionInvitationMessage.type)
         let decoded = try JSONDecoder().decode(ConnectionInvitationMessage.self, from: Data(message.utf8))
@@ -51,7 +51,7 @@ class DidCommMessageRepositoryTest: XCTestCase {
 
     func testFindAgentMessage() async throws {
         let record = getRecord()
-        try await repository.save(record)
+        try await repository.saveAgentMessage(role: .Receiver, agentMessage: invitation, associatedRecordId: record.associatedRecordId!)
 
         let message = try await repository.findAgentMessage(associatedRecordId: record.associatedRecordId!, messageType: ConnectionInvitationMessage.type)!
         let decoded = try JSONDecoder().decode(ConnectionInvitationMessage.self, from: Data(message.utf8))
@@ -89,9 +89,13 @@ class DidCommMessageRepositoryTest: XCTestCase {
         XCTAssertEqual(decodedUpdate.id, invitationUpdate.id)
         XCTAssertEqual(decodedUpdate.label, invitationUpdate.label)
 
+        var type = ConnectionInvitationMessage.type
+        if self.agent.agentConfig.useLegacyDidSovPrefix {
+            type = Dispatcher.replaceNewDidCommPrefixWithLegacyDidSov(messageType: type)
+        }
         let updatedRecord = try await repository.findSingleByQuery("""
             {"associatedRecordId": "\(record.associatedRecordId!)",
-            "messageType": "\(ConnectionInvitationMessage.type)"}
+            "messageType": "\(type)"}
             """
         )!
         XCTAssertEqual(updatedRecord.message, invitationUpdate.toJsonString())

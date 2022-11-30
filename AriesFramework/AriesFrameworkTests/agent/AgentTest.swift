@@ -29,7 +29,7 @@ class AgentTest: XCTestCase {
     }
 
     func testMediatorConnect() async throws {
-        var config = try TestHelper.getBaseConfig(name: "alice", useLedgerSerivce: false)
+        var config = try TestHelper.getBaseConfig(name: "alice")
         config.mediatorPickupStrategy = .Implicit
         config.mediatorConnectionsInvite = "https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ=="
         class TestDelegate: AgentDelegate {
@@ -57,7 +57,7 @@ class AgentTest: XCTestCase {
     }
 
     func testAgentInit() async throws {
-        var config = try TestHelper.getBaseConfig(name: "alice", useLedgerSerivce: false)
+        var config = try TestHelper.getBaseConfig(name: "alice")
         config.mediatorConnectionsInvite = try String(data: Data(contentsOf: URL(string: mediatorInvitationUrl)!), encoding: .utf8)!
         class TestDelegate: AgentDelegate {
             let expectation: TestHelper.XCTestExpectation
@@ -110,7 +110,7 @@ class AgentTest: XCTestCase {
        $ AGENT_PORT=3002 AGENT_ENDPOINTS=http://localhost:3002 npx ts-node mediator.ts
      */
     func testAgentConnect() async throws {
-        var config = try TestHelper.getBaseConfig(name: "alice", useLedgerSerivce: false)
+        var config = try TestHelper.getBaseConfig(name: "alice")
         config.mediatorConnectionsInvite = String(data: try Data(contentsOf: URL(string: mediatorInvitationUrl)!), encoding: .utf8)!
         class TestDelegate: AgentDelegate {
             let expectation: TestHelper.XCTestExpectation
