@@ -1,5 +1,4 @@
 
-
 import Foundation
 
 // Return type of IndyAnoncreds.proverGetCredentials()

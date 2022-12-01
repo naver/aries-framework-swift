@@ -2,9 +2,9 @@
 import Foundation
 
 public enum MediationState: String, Codable {
-    case Requested = "Requested"
-    case Granted = "Granted"
-    case Denied = "Denied"
+    case Requested
+    case Granted
+    case Denied
 }
 
 public enum MediationRole: String, Codable {
@@ -83,7 +83,7 @@ extension MediationRecord: Codable {
 
     public func assertState(_ expectedStates: MediationState...) throws {
         if !expectedStates.contains(state) {
-            throw AriesFrameworkError.frameworkError("Mediation record is in invalid state \(state). Valid states are: \(expectedStates.map{ $0.rawValue }.joined(separator: ", ")).")
+            throw AriesFrameworkError.frameworkError("Mediation record is in invalid state \(state). Valid states are: \(expectedStates.map { $0.rawValue }.joined(separator: ", ")).")
         }
     }
 

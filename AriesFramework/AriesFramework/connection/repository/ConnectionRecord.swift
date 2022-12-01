@@ -134,7 +134,7 @@ extension ConnectionRecord: Codable {
 
     func assertState(_ expectedStates: ConnectionState...) throws {
         if !expectedStates.contains(state) {
-            throw AriesFrameworkError.frameworkError("Connection record is in invalid state \(state). Valid states are: \(expectedStates.map{ $0.rawValue }.joined(separator: ", ")).")
+            throw AriesFrameworkError.frameworkError("Connection record is in invalid state \(state). Valid states are: \(expectedStates.map { $0.rawValue }.joined(separator: ", ")).")
         }
     }
 

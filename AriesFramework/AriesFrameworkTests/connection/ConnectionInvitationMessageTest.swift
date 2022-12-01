@@ -13,7 +13,7 @@ class ConnectionInvitationMessageTest: XCTestCase {
             "label": "test"
           }
         """
-        let invitation = try JSONDecoder().decode(ConnectionInvitationMessage.self, from:Data(json.utf8))
+        let invitation = try JSONDecoder().decode(ConnectionInvitationMessage.self, from: Data(json.utf8))
         XCTAssertNotNil(invitation, "should allow routingKeys to be left out of inline invitation")
     }
 
@@ -25,7 +25,7 @@ class ConnectionInvitationMessageTest: XCTestCase {
             "label": "test"
           }
         """
-        let invitation = try? JSONDecoder().decode(ConnectionInvitationMessage.self, from:Data(json.utf8))
+        let invitation = try? JSONDecoder().decode(ConnectionInvitationMessage.self, from: Data(json.utf8))
         XCTAssertNil(invitation, "should throw error if both did and inline keys / endpoint are missing")
     }
 

@@ -1,3 +1,4 @@
+// swiftlint:disable force_cast
 
 import XCTest
 @testable import AriesFramework
@@ -10,7 +11,7 @@ class PublicKeyTest: XCTestCase {
                 "id": "3",
                 "type": "RsaVerificationKey2018",
                 "controller": "did:sov:LjgpST2rjsoxYegQDRm7EL",
-                "publicKeyPem": "-----BEGIN PUBLIC X...",
+                "publicKeyPem": "-----BEGIN PUBLIC X..."
             ]
         ],
         [
@@ -19,7 +20,7 @@ class PublicKeyTest: XCTestCase {
                 "id": "4",
                 "type": "Ed25519VerificationKey2018",
                 "controller": "did:sov:LjgpST2rjsoxYegQDRm7EL",
-                "publicKeyBase58": "-----BEGIN PUBLIC X...",
+                "publicKeyBase58": "-----BEGIN PUBLIC X..."
             ]
         ],
         [
@@ -28,11 +29,11 @@ class PublicKeyTest: XCTestCase {
                 "id": "did:sov:LjgpST2rjsoxYegQDRm7EL#5",
                 "type": "Secp256k1VerificationKey2018",
                 "controller": "did:sov:LjgpST2rjsoxYegQDRm7EL",
-                "publicKeyHex": "-----BEGIN PUBLIC X...",
+                "publicKeyHex": "-----BEGIN PUBLIC X..."
             ]
-        ],
+        ]
     ]
-    
+
     func decode(data: Data) throws -> Any? {
         let decoder = JSONDecoder()
         if let pubkey = try? decoder.decode(RsaSig2018.self, from: data) {
@@ -46,7 +47,7 @@ class PublicKeyTest: XCTestCase {
         }
         return nil
     }
-    
+
     func encode(pubKey: PublicKey) throws -> Data? {
         let encoder = JSONEncoder()
         switch pubKey {
@@ -81,14 +82,14 @@ class PublicKeyTest: XCTestCase {
             XCTAssertEqual(pubKey.value, clone.value)
         }
     }
-    
+
     func testPublicKeyArray() async throws {
         let pubKeyArray = publicKeysJson.map { $0["json"] as! [String: Any] }
         let pubKeyArrayJson = try JSONSerialization.data(withJSONObject: pubKeyArray, options: [])
         let decoder = JSONDecoder()
         let parser = try decoder.decode(PubkeyParser.self, from: pubKeyArrayJson)
         XCTAssertEqual(parser.pubkeys.count, 3)
-        if (parser.pubkeys.count == 3) {
+        if parser.pubkeys.count == 3 {
             XCTAssertEqual(parser.pubkeys[0].id, "3")
             XCTAssertEqual(parser.pubkeys[1].id, "4")
             XCTAssertEqual(parser.pubkeys[2].id, "did:sov:LjgpST2rjsoxYegQDRm7EL#5")
@@ -108,7 +109,7 @@ class PublicKeyTest: XCTestCase {
         XCTAssertEqual(pubKey.type, "RsaVerificationKey2018")
         XCTAssertEqual(pubKey.controller, "did:sov:LjgpST2rjsoxYegQDRm7EL")
         XCTAssertEqual(pubKey.value, "-----BEGIN PUBLIC X...")
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(pubKey)
         let clone = try decoder.decode(RsaSig2018.self, from: data)

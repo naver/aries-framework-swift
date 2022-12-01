@@ -38,7 +38,7 @@ public enum DidDocService: Codable {
             return doc.recipientKeys
         }
     }
-    
+
     var serviceEndpoint: String {
         switch self {
         case .didDocument(let doc):

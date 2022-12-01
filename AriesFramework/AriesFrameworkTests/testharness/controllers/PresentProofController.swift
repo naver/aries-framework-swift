@@ -43,8 +43,10 @@ class PresentProofController: CRRouteController {
         self.post("/send-presentation") { (req, res, next) in
             Task {
                 do {
-                    let body = req.body as! [String: Any]
-                    let threadId = body["id"] as! String
+                    let body = req.body as? [String: Any]
+                    guard let threadId = body?["id"] as? String else {
+                        throw AriesFrameworkError.frameworkError("Cannot parse id from request body")
+                    }
                     var record = try await self.agent!.proofRepository.getByThreadAndConnectionId(threadId: threadId, connectionId: nil)
 
                     let retrievedCredentials = try await self.agent!.proofs.getRequestedCredentialsForProofRequest(proofRecordId: record.id)

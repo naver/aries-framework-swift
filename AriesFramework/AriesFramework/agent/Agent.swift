@@ -63,7 +63,7 @@ public class Agent {
         if let rustLogEnvVar = ProcessInfo.processInfo.environment["RUST_LOG"] {
             IndyLogger.setDefault(rustLogEnvVar)
         }
-        
+
         try await wallet.initialize()
 
         if let publicDidSeed = agentConfig.publicDidSeed {

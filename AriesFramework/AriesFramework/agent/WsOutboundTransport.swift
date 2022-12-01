@@ -6,7 +6,7 @@ import os
 public class WsOutboundTransport: OutboundTransport {
     let logger = Logger(subsystem: "AriesFramework", category: "WsOutboundTransport")
     let agent: Agent
-    var socket: WebSocket? = nil
+    var socket: WebSocket?
     var endpoint = ""
     let lock = NSLock()
     let CLOSE_BY_CLIENT = UInt16(3000)
@@ -24,6 +24,7 @@ public class WsOutboundTransport: OutboundTransport {
             socket = try await createSocket(endpoint: package.endpoint)
         }
 
+        // swiftlint:disable:next force_try
         await socket!.send(data: try! JSONEncoder().encode(package.payload))
     }
 
@@ -46,7 +47,7 @@ public class WsOutboundTransport: OutboundTransport {
         do {
             for try await event in socket! {
                 switch event {
-                case .open(_):
+                case .open:
                     return
                 default:
                     throw AriesFrameworkError.frameworkError("Unexpected WebSocket event: \(event)")

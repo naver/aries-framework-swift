@@ -13,13 +13,13 @@ extension DidDoc: Codable {
     enum CodingKeys: String, CodingKey {
         case context = "@context", id, publicKey, service, authentication
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
         service = try container.decode([DidDocService].self, forKey: .service)
         authentication = try container.decode([Authentication].self, forKey: .authentication)
-        
+
         let pubkeyParser = try container.decode(PubkeyParser.self, forKey: .publicKey)
         publicKey = pubkeyParser.pubkeys
     }

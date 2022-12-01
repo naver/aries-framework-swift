@@ -13,7 +13,7 @@ public class ProposeCredentialMessage: AgentMessage {
     public var credentialDefinitionId: String?
     public var issuerDid: String?
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case comment, credentialPreview = "credential_proposal", schemaIssuerDid = "schema_issuer_did", schemaId = "schema_id", schemaName = "schema_name", schemaVersion = "schema_version", credentialDefinitionId = "cred_def_id", issuerDid = "issuer_did"
     }
 

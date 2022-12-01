@@ -30,6 +30,7 @@ class ConnectionTest: XCTestCase {
 
     func testMultiUseInvite() async throws {
         let message = try await faberAgent.connections.createConnection(multiUseInvitation: true)
+        // swiftlint:disable:next force_cast
         let invitation = message.payload as! ConnectionInvitationMessage
         let invitationUrl = try invitation.toUrl(domain: "https://example.com")
 

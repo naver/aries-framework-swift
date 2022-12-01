@@ -12,8 +12,8 @@ class OutOfBandInvitationTest: XCTestCase {
             "label": "Faber College",
             "goal_code": "issue-vc",
             "goal": "To issue a Faber College Graduate credential",
-            "handshake_protocols": ["https://didcomm.org/didexchange/1.0", "https://didcomm.org/connections/1.0"],
-        ] as [String : Any]
+            "handshake_protocols": ["https://didcomm.org/didexchange/1.0", "https://didcomm.org/connections/1.0"]
+        ] as [String: Any]
         let json = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
         let invitation = try JSONDecoder().decode(OutOfBandInvitation.self, from: json)
         let invitationUrl = try invitation.toUrl(domain: domain)

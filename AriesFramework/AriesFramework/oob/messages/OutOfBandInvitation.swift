@@ -12,7 +12,7 @@ public class OutOfBandInvitation: AgentMessage {
     var services: [OutOfBandDidCommService]
     var imageUrl: String?
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case label, goalCode = "goal_code", goal, accept, handshakeProtocols = "handshake_protocols", requests = "requests~attach", services, imageUrl
     }
 
@@ -58,7 +58,7 @@ public class OutOfBandInvitation: AgentMessage {
     }
 
     public func addRequest(message: AgentMessage) throws {
-        if (self.requests == nil) {
+        if self.requests == nil {
             self.requests = []
         }
         let requestAttachment = Attachment(

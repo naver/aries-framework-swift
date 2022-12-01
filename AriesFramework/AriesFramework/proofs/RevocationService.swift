@@ -17,7 +17,7 @@ struct ReferentCredential {
 
 public class RevocationService {
     let agent: Agent
-    
+
     init(agent: Agent) {
         self.agent = agent
     }
@@ -33,7 +33,8 @@ public class RevocationService {
                 }
                 if revocationRegistries[revocationRegistryId]![String(timestamp)] == nil {
                     let (revocationRegistryJson, _) = try await agent.ledgerService.getRevocationRegistry(id: revocationRegistryId, timestamp: timestamp)
-                    let revocationRegistry = try JSONSerialization.jsonObject(with: revocationRegistryJson.data(using: .utf8)! , options: []) as! [String: Any]
+                    // swiftlint:disable:next force_cast
+                    let revocationRegistry = try JSONSerialization.jsonObject(with: revocationRegistryJson.data(using: .utf8)!, options: []) as! [String: Any]
                     revocationRegistries[revocationRegistryId]![String(timestamp)] = revocationRegistry
                 }
             }
@@ -77,7 +78,7 @@ public class RevocationService {
                let revocationRegistryId = credential.credentialInfo.revocationRegistryId {
 
                 try assertRevocationInterval(requestRevocationInterval)
-                
+
                 let revocationRegistryDefinition = try await agent.ledgerService.getRevocationRegistryDefinition(id: revocationRegistryId)
                 let (revocationRegistryDelta, deltaTimestamp) = try await agent.ledgerService.getRevocationRegistryDelta(id: revocationRegistryId, to: requestRevocationInterval.to!, from: 0)
                 let tailsReader = try await downloadTails(revocationRegistryDefinition: revocationRegistryDefinition)
@@ -88,6 +89,7 @@ public class RevocationService {
                     revRegDefJSON: revocationRegistryDefinition,
                     revRegDeltaJSON: revocationRegistryDelta,
                     blobStorageReaderHandle: tailsReader)
+                // swiftlint:disable:next force_cast
                 let revocationState = try JSONSerialization.jsonObject(with: revocationStateJson!.data(using: .utf8)!, options: []) as! [String: Any]
 
                 if revocationStates[revocationRegistryId] == nil {
@@ -102,20 +104,21 @@ public class RevocationService {
     }
 
     func assertRevocationInterval(_ requestRevocationInterval: RevocationInterval) throws {
-        if (requestRevocationInterval.to == nil) {
+        if requestRevocationInterval.to == nil {
             throw AriesFrameworkError.frameworkError("Presentation requests proof of non-revocation with no 'to' value specified")
         }
 
-        if (requestRevocationInterval.from != nil && requestRevocationInterval.to != requestRevocationInterval.from ) {
+        if requestRevocationInterval.from != nil && requestRevocationInterval.to != requestRevocationInterval.from {
             throw AriesFrameworkError.frameworkError("Presentation requests proof of non-revocation with an interval from: '\(requestRevocationInterval.from!)' that does not match the interval to: '\(requestRevocationInterval.to!)', as specified in Aries RFC 0441")
         }
     }
 
     func parseRevocationRegistryDefinition(_ revocationRegistryDefinitionJson: String) throws -> (tailsLocation: String, tailsHash: String) {
-        let revocationRegistryDefinition = try JSONSerialization.jsonObject(with: revocationRegistryDefinitionJson.data(using: .utf8)!, options: []) as! [String: Any]
-        let value = revocationRegistryDefinition["value"] as! [String: Any]
-        let tailsLocation = value["tailsLocation"] as! String
-        let tailsHash = value["tailsHash"] as! String
+        let revocationRegistryDefinition = try JSONSerialization.jsonObject(with: revocationRegistryDefinitionJson.data(using: .utf8)!, options: []) as? [String: Any]
+        let value = revocationRegistryDefinition?["value"] as? [String: Any]
+        guard let tailsLocation = value?["tailsLocation"] as? String, let tailsHash = value?["tailsHash"] as? String else {
+            throw AriesFrameworkError.frameworkError("Could not parse tailsLocation and tailsHash from revocation registry definition")
+        }
         return (tailsLocation, tailsHash)
     }
 
@@ -137,7 +140,7 @@ public class RevocationService {
     func createTailsReader(filePath: String) async throws -> NSNumber {
         let dirname = filePath.components(separatedBy: "/").dropLast().joined(separator: "/")
         let tailsReaderConfig = [ "base_dir": dirname ].toString()
-        let tailsReader = try await IndyBlobStorage.openReader(withType:"default", config: tailsReaderConfig)
+        let tailsReader = try await IndyBlobStorage.openReader(withType: "default", config: tailsReaderConfig)
         return tailsReader!
     }
 }

@@ -22,7 +22,7 @@ public class AsyncWaiter {
                 return false
             }
         }
-        
+
         return true
     }
 

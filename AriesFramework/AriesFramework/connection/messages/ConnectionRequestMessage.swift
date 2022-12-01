@@ -7,7 +7,7 @@ public class ConnectionRequestMessage: AgentMessage {
     var connection: Connection
     public static var type: String = "https://didcomm.org/connections/1.0/request"
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case label, imageUrl, connection
     }
 
@@ -34,4 +34,3 @@ public class ConnectionRequestMessage: AgentMessage {
         try super.encode(to: encoder)
     }
 }
-

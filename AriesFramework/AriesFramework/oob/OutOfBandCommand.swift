@@ -1,3 +1,4 @@
+// swiftlint:disable cyclomatic_complexity
 
 import Foundation
 import os
@@ -41,25 +42,25 @@ public class OutOfBandCommand {
         let label = config.label ?? agent.agentConfig.label
         let imageUrl = config.imageUrl ?? agent.agentConfig.connectionImageUrl
 
-        if (!handshake && messages.count == 0) {
+        if !handshake && messages.count == 0 {
             throw AriesFrameworkError.frameworkError(
                 "One of handshake_protocols and requests~attach MUST be included in the message."
             )
         }
 
-        if (!messages.isEmpty && multiUseInvitation) {
+        if !messages.isEmpty && multiUseInvitation {
             throw AriesFrameworkError.frameworkError(
                 "Attribute 'multiUseInvitation' can not be 'true' when 'messages' is defined."
             )
         }
 
         var handshakeProtocols: [HandshakeProtocol]?
-        if (handshake) {
+        if handshake {
             handshakeProtocols = self.getSupportedHandshakeProtocols()
         }
 
         var routing: Routing! = config.routing
-        if (routing == nil) {
+        if routing == nil {
             routing = try await self.agent.mediationRecipient.getRouting()
         }
 
@@ -82,7 +83,7 @@ public class OutOfBandCommand {
             services: services,
             imageUrl: imageUrl)
 
-        if (!messages.isEmpty) {
+        if !messages.isEmpty {
             try messages.forEach { message in
                 try outOfBandInvitation.addRequest(message: message)
             }
@@ -156,7 +157,7 @@ public class OutOfBandCommand {
 
         let messages = try invitation.getRequests()
 
-        if (invitation.handshakeProtocols?.count ?? 0 == 0 && messages.count == 0) {
+        if invitation.handshakeProtocols?.count ?? 0 == 0 && messages.count == 0 {
             throw AriesFrameworkError.frameworkError(
                 "One of handshake_protocols and requests~attach MUST be included in the message."
             )
@@ -186,7 +187,7 @@ public class OutOfBandCommand {
         try await self.agent.outOfBandRepository.save(outOfBandRecord)
         agent.agentDelegate?.onOutOfBandStateChanged(outOfBandRecord: outOfBandRecord)
 
-        if (autoAcceptInvitation) {
+        if autoAcceptInvitation {
             let acceptConfig = ReceiveOutOfBandInvitationConfig(
                 label: label,
                 alias: alias,
@@ -225,14 +226,14 @@ public class OutOfBandCommand {
         let handshakeProtocols = outOfBandRecord.outOfBandInvitation.handshakeProtocols ?? []
         if handshakeProtocols.count > 0 {
             var connectionRecord: ConnectionRecord?
-            if (existingConnection != nil && config?.reuseConnection ?? true) {
+            if existingConnection != nil && config?.reuseConnection ?? true {
                 if messages.count > 0 {
                     logger.debug("Skip handshake and reuse existing connection \(existingConnection!.id)")
                     connectionRecord = existingConnection
                 } else {
                     logger.debug("Start handshake to reuse connection.")
                     let isHandshakeReuseSuccessful = try await handleHandshakeReuse(outOfBandRecord: outOfBandRecord, connectionRecord: existingConnection!)
-                    if (isHandshakeReuseSuccessful) {
+                    if isHandshakeReuseSuccessful {
                         connectionRecord = existingConnection
                     } else {
                         logger.warning("Handshake reuse failed. Not using existing connection \(existingConnection!.id)")
@@ -250,7 +251,7 @@ public class OutOfBandCommand {
 
                 connectionRecord = try await agent.connections.acceptOutOfBandInvitation(outOfBandRecord: outOfBandRecord, config: config)
             }
-            
+
             if try await agent.connectionService.fetchState(connectionRecord: connectionRecord!) != .Complete {
                 let result = try await agent.connectionService.waitForConnection()
                 if !result {
@@ -258,7 +259,7 @@ public class OutOfBandCommand {
                 }
             }
             connectionRecord = try await agent.connectionRepository.getById(connectionRecord!.id)
-            if (!outOfBandRecord.reusable) {
+            if !outOfBandRecord.reusable {
                 try await agent.outOfBandService.updateState(outOfBandRecord: &outOfBandRecord, newState: .Done)
             }
 
@@ -268,7 +269,7 @@ public class OutOfBandCommand {
             return (outOfBandRecord, connectionRecord)
         } else if messages.count > 0 {
             logger.debug("Out of band message contains only request messages.")
-            if (existingConnection != nil) {
+            if existingConnection != nil {
                 try await processMessages(messages, connectionRecord: existingConnection!)
             } else {
                 // TODO: send message to the service endpoint
@@ -314,7 +315,7 @@ public class OutOfBandCommand {
         }
         let connections = await agent.connectionService.findAllByInvitationKey(invitationKey)
 
-        if (connections.count == 0) {
+        if connections.count == 0 {
             return nil
         }
         return connections.first(where: { $0.isReady() })
@@ -326,7 +327,7 @@ public class OutOfBandCommand {
     }
 
     private func assertHandshakeProtocols(_ handshakeProtocols: [HandshakeProtocol]) throws {
-        if (!areHandshakeProtocolsSupported(handshakeProtocols)) {
+        if !areHandshakeProtocolsSupported(handshakeProtocols) {
             let supportedProtocols = getSupportedHandshakeProtocols()
             throw AriesFrameworkError.frameworkError(
                 "Handshake protocols [\(handshakeProtocols)] are not supported. Supported protocols are [\(supportedProtocols)]"

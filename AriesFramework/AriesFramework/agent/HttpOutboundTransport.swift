@@ -19,12 +19,13 @@ public class HttpOutboundTransport: OutboundTransport {
         request.addValue(DidCommMimeType.V1.rawValue, forHTTPHeaderField: "Content-Type")
 
         let (data, response) = try await URLSession.shared.data(for: request)
+        // swiftlint:disable:next force_cast
         logger.debug("response with status code: \((response as! HTTPURLResponse).statusCode)")
 
-        if (data.count > 0) {
+        if data.count > 0 {
             let encryptedMessage = try JSONDecoder().decode(EncryptedMessage.self, from: data)
             try await agent.receiveMessage(encryptedMessage)
-        } else if (package.responseRequested) {
+        } else if package.responseRequested {
             logger.debug("Requested response but got no data. Will initiate message pickup if necessary.")
             DispatchQueue.main.asyncAfter(deadline: .now() + agent.agentConfig.mediatorEmptyReturnRetryInterval) { [self] in
                 Task {
@@ -36,4 +37,3 @@ public class HttpOutboundTransport: OutboundTransport {
         }
     }
 }
-

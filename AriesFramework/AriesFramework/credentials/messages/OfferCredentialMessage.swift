@@ -9,7 +9,7 @@ public class OfferCredentialMessage: AgentMessage {
     public var credentialPreview: CredentialPreview
     public var offerAttachments: [Attachment]
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case comment, credentialPreview = "credential_preview", offerAttachments = "offers~attach"
     }
 

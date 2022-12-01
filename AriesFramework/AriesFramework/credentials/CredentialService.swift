@@ -167,8 +167,8 @@ public class CredentialService {
             holderDid = try await getHolderDid(credentialRecord: credentialRecord)
         }
         let credentialOfferJson = try offerMessage.getCredentialOffer()
-        let credentialOffer = try JSONSerialization.jsonObject(with: Data(credentialOfferJson.utf8), options: []) as! [String: Any]
-        let credentialDefinition = try await ledgerService.getCredentialDefinition(id: credentialOffer["cred_def_id"] as! String)
+        let credentialOffer = try JSONSerialization.jsonObject(with: Data(credentialOfferJson.utf8), options: []) as? [String: Any]
+        let credentialDefinition = try await ledgerService.getCredentialDefinition(id: credentialOffer?["cred_def_id"] as? String ?? "unknown_id")
 
         let (credentialRequest, credentialRequestMetadata) = try await IndyAnoncreds.proverCreateCredentialReq(
             forCredentialOffer: credentialOfferJson,
@@ -178,7 +178,7 @@ public class CredentialService {
             walletHandle: agent.wallet.handle!)
 
         credentialRecord.indyRequestMetadata = credentialRequestMetadata
-        credentialRecord.credentialDefinitionId = credentialOffer["cred_def_id"] as? String
+        credentialRecord.credentialDefinitionId = credentialOffer?["cred_def_id"] as? String
 
         let attachment = Attachment.fromData(credentialRequest!.data(using: .utf8)!, id: RequestCredentialMessage.INDY_CREDENTIAL_REQUEST_ATTACHMENT_ID)
         let requestMessage = RequestCredentialMessage(

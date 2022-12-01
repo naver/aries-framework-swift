@@ -1,3 +1,4 @@
+// swiftlint:disable force_try
 
 import XCTest
 import Criollo
@@ -24,7 +25,7 @@ class CriolloTest: XCTestCase {
             res.send(data)
         }
 
-        var serverError:NSError?
+        var serverError: NSError?
         print("starting server on port \(port)")
         server.startListening(&serverError, portNumber: UInt(port))
 

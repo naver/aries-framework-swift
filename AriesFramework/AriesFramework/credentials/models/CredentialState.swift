@@ -12,4 +12,4 @@ public enum CredentialState: String, Codable {
     case CredentialIssued = "credential-issued"
     case CredentialReceived = "credential-received"
     case Done = "done"
-} 
+}

@@ -25,7 +25,7 @@ class SignatureDecoratorTest: XCTestCase {
 
     override func tearDown() async throws {
         try await super.tearDown()
-        if (agent.wallet.handle != nil) {
+        if agent.wallet.handle != nil {
             try await agent.wallet.delete()
         }
     }

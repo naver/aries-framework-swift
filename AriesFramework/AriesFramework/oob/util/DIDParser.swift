@@ -26,7 +26,7 @@ public class DIDParser {
             throw AriesFrameworkError.frameworkError("Invalid DID: \(did)")
         }
         let match = matches[0]
-        let methodId = did[Range(match.range(at: 2), in:did)!]
+        let methodId = did[Range(match.range(at: 2), in: did)!]
         return String(methodId)
     }
 
@@ -37,7 +37,7 @@ public class DIDParser {
             throw AriesFrameworkError.frameworkError("Invalid DID: \(did)")
         }
         let match = matches[0]
-        let method = did[Range(match.range(at: 1), in:did)!]
+        let method = did[Range(match.range(at: 1), in: did)!]
         return String(method)
     }
 
@@ -64,7 +64,7 @@ public class DIDParser {
 
     public static func ConvertDidKeyToVerkey(did: String) throws -> String {
         let method = try getMethod(did: did)
-        if (method != "key") {
+        if method != "key" {
             throw AriesFrameworkError.frameworkError("Invalid DID method: \(method)")
         }
 
@@ -79,7 +79,7 @@ public class DIDParser {
         }
 
         let codec = bytes.prefix(2)
-        if (Array(codec) != MULTICODEC_PREFIX_ED25519) {
+        if Array(codec) != MULTICODEC_PREFIX_ED25519 {
             throw AriesFrameworkError.frameworkError("Invalid DID key codec: \(codec)")
         }
 

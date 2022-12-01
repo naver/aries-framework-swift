@@ -7,7 +7,7 @@ public struct AttachmentData: Codable {
     var links: [String]?
     var jws: Jws?
     var sha256: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case base64, json, links, jws, sha256
     }

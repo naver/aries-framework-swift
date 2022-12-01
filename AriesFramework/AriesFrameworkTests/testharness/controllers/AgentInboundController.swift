@@ -28,6 +28,7 @@ class AgentInboundController: CRRouteController {
                     return
                 }
 
+                // swiftlint:disable:next force_cast
                 let encryptedMessage = try JSONDecoder().decode(EncryptedMessage.self, from: req.body as! Data)
                 try await self.agent!.receiveMessage(encryptedMessage)
                 ControllerUtils.sendEmptyResponse(res: res)

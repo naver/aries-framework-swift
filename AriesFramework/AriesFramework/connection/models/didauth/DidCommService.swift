@@ -8,6 +8,6 @@ public struct DidCommService: Codable {
     var serviceEndpoint: String
     var recipientKeys: [String]
     var routingKeys: [String]?
-    var accept: [String]? = nil
+    var accept: [String]?
     var priority: Int? = 0
 }

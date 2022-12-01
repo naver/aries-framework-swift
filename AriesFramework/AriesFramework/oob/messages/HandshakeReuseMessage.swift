@@ -6,7 +6,7 @@ public class HandshakeReuseMessage: AgentMessage {
 
     public init(parentThreadId: String) {
         super.init(type: HandshakeReuseMessage.type)
-        self.thread = ThreadDecorator(threadId:id, parentThreadId: parentThreadId)
+        self.thread = ThreadDecorator(threadId: id, parentThreadId: parentThreadId)
     }
 
     public required init(from decoder: Decoder) throws {

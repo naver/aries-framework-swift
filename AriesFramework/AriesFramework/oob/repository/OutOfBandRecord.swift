@@ -48,7 +48,7 @@ extension OutOfBandRecord: Codable {
 
     public func assertState(_ expectedStates: OutOfBandState...) throws {
         if !expectedStates.contains(state) {
-            throw AriesFrameworkError.frameworkError("OutOfBand record is in invalid state \(state). Valid states are: \(expectedStates.map{ $0.rawValue }.joined(separator: ", ")).")
+            throw AriesFrameworkError.frameworkError("OutOfBand record is in invalid state \(state). Valid states are: \(expectedStates.map { $0.rawValue }.joined(separator: ", ")).")
         }
     }
 

@@ -43,4 +43,3 @@ class KeylistUpdateResponseMessage: AgentMessage {
         try super.encode(to: encoder)
     }
 }
-

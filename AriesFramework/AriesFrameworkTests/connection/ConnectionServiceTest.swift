@@ -46,7 +46,7 @@ class ConnectionServiceTest: XCTestCase {
     }
 
     func testProcessInvitation() async throws {
-        //It returns a connection record containing the information from the connection invitation
+        // It returns a connection record containing the information from the connection invitation
 
         let recipientKey = "key-1"
         let invitation = ConnectionInvitationMessage(
@@ -78,18 +78,19 @@ class ConnectionServiceTest: XCTestCase {
     }
 
     func testCreateRequest() async throws {
-        //It returns a connection request message containing the information from the connection record
+        // It returns a connection request message containing the information from the connection record
 
         let connection = TestHelper.getMockConnection()
         try await connectionService.connectionRepository.save(connection)
 
         let outboundMessage = try await connectionService.createRequest(connectionId: connection.id)
+        // swiftlint:disable:next force_cast
         let message = outboundMessage.payload as! ConnectionRequestMessage
 
         XCTAssertEqual(outboundMessage.connection.state, ConnectionState.Requested)
         XCTAssertEqual(message.label, config.label)
         XCTAssertEqual(message.connection.did, "test-did")
-        
+
         let encoder = JSONEncoder()
         XCTAssertEqual(try encoder.encode(message.connection.didDoc), try encoder.encode(connection.didDoc))
         XCTAssertEqual(message.imageUrl, connectionImageUrl)

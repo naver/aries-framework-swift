@@ -20,7 +20,7 @@ class AATHTest: XCTestCase {
         }
 
         print("starting backchannel on port \(testHarnessConfig.backchannelPort)")
-        var serverError:NSError?
+        var serverError: NSError?
         backchannel.startListening(&serverError, portNumber: UInt(testHarnessConfig.backchannelPort))
 
         print("starting agent inbound on port \(testHarnessConfig.agentPort)")

@@ -30,7 +30,7 @@ class DIDParserTest: XCTestCase {
 
         let verkey = try DIDParser.ConvertDidKeyToVerkey(did: did)
         XCTAssertEqual(verkey, VERKEY)
-        
+
         let verkey2 = try DIDParser.ConvertFingerprintToVerkey(fingerprint: DIDParser.getMethodId(did: did))
         XCTAssertEqual(verkey2, VERKEY)
 

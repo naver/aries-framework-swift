@@ -23,17 +23,17 @@ extension SignatureDecorator: Codable {
 
     func unpackData() async throws -> Data {
         var signedData = Data(base64Encoded: signatureData.base64urlToBase64(), options: [])
-        if (signedData == nil || signedData!.count <= 8) {
+        if signedData == nil || signedData!.count <= 8 {
             throw AriesFrameworkError.frameworkError("Invalid signature data")
         }
 
         let signature = Data(base64Encoded: signature.base64urlToBase64(), options: [])
-        if (signature == nil) {
+        if signature == nil {
             throw AriesFrameworkError.frameworkError("Invalid signature")
         }
 
         let isValid = try await IndyCrypto.verifySignature(signature, forMessage: signedData, key: signer)
-        if (!isValid) {
+        if !isValid {
             throw AriesFrameworkError.frameworkError("Signature verification failed")
         }
 
@@ -41,7 +41,7 @@ extension SignatureDecorator: Codable {
         signedData = signedData!.subdata(in: 8..<signedData!.count)
         return signedData!
     }
-    
+
     func unpackConnection() async throws -> Connection {
         let signedData = try await unpackData()
         let connection = try JSONDecoder().decode(Connection.self, from: signedData)
@@ -49,7 +49,7 @@ extension SignatureDecorator: Codable {
     }
 
     static func signData(data: Data, wallet: Wallet, verkey: String) async throws -> SignatureDecorator {
-        var signatureData = Data(count:8)
+        var signatureData = Data(count: 8)
         signatureData.append(data)
         let signature = try await IndyCrypto.signMessage(signatureData, key: verkey, walletHandle: wallet.handle!)
         let signatureType = "https://didcomm.org/signature/1.0/ed25519Sha512_single"

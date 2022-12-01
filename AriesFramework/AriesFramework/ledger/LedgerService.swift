@@ -35,7 +35,7 @@ public class LedgerService {
 
     func initialize() async throws {
         logger.info("Initializing Pool")
-        if (indyPool != nil) {
+        if indyPool != nil {
           logger.warning("Pool already initialized.")
           try await close()
         }
@@ -43,7 +43,7 @@ public class LedgerService {
         try await IndyPool.setProtocolVersion(2)
         let poolConfig = ["genesis_txn": agent.agentConfig.genesisPath].toString()
         let userDefaults = UserDefaults.standard
-        if (!userDefaults.bool(forKey: poolExistKey)) {
+        if !userDefaults.bool(forKey: poolExistKey) {
             do {
                 try await IndyPool.createPoolLedgerConfig(withPoolName: agent.agentConfig.poolName, poolConfig: poolConfig)
                 userDefaults.set(true, forKey: poolExistKey)
@@ -155,7 +155,7 @@ public class LedgerService {
 
     func validateResponse(_ response: String) throws {
         let indyResponse = try JSONDecoder().decode(IndyResponse.self, from: response.data(using: .utf8)!)
-        if (indyResponse.op != "REPLY") {
+        if indyResponse.op != "REPLY" {
             throw AriesFrameworkError.frameworkError("Submit request failed: \(indyResponse.reason ?? "Unknown error")")
         }
     }
@@ -184,19 +184,19 @@ public class LedgerService {
     }
 
     func close() async throws {
-        if (indyPool != nil) {
+        if indyPool != nil {
             try await IndyPool.closeLedger(withHandle: indyPool!)
             indyPool = nil
         }
     }
 
     func delete() async throws {
-        if (indyPool != nil) {
+        if indyPool != nil {
             try? await close()
         }
 
         let userDefaults = UserDefaults.standard
-        if (userDefaults.bool(forKey: poolExistKey)) {
+        if userDefaults.bool(forKey: poolExistKey) {
             try await IndyPool.deleteLedgerConfig(withName: agent.agentConfig.poolName)
             userDefaults.removeObject(forKey: poolExistKey)
         }

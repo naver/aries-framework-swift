@@ -1,3 +1,4 @@
+// swiftlint:disable force_cast
 
 import XCTest
 @testable import AriesFramework
@@ -60,7 +61,7 @@ let diddoc = [
             "publicKeyPem": "-----BEGIN PUBLIC A..."
         ]
     ]
-] as [String : Any]
+] as [String: Any]
 
 class DidDocTest: XCTestCase {
     let decoder = JSONDecoder()
