@@ -26,7 +26,7 @@ public class OutOfBandService {
         try outOfBandRecord.assertRole(OutOfBandRole.Sender)
         try outOfBandRecord.assertState(OutOfBandState.AwaitResponse)
 
-        if (!outOfBandRecord.reusable) {
+        if !outOfBandRecord.reusable {
             try await updateState(outOfBandRecord: &outOfBandRecord, newState: .Done)
         }
 
@@ -49,7 +49,7 @@ public class OutOfBandService {
         try outOfBandRecord.assertState(OutOfBandState.PrepareResponse)
 
         let reusedConnection = try messageContext.assertReadyConnection()
-        if (outOfBandRecord.reuseConnectionId != reusedConnection.id) {
+        if outOfBandRecord.reuseConnectionId != reusedConnection.id {
             throw AriesFrameworkError.frameworkError("handshake-reuse-accepted is not in response to a handshake-reuse message.")
         }
 
@@ -73,7 +73,7 @@ public class OutOfBandService {
     func updateState(outOfBandRecord: inout OutOfBandRecord, newState: OutOfBandState) async throws {
         outOfBandRecord.state = newState
         try await outOfBandRepository.update(outOfBandRecord)
-        if (newState == .Done) {
+        if newState == .Done {
             finishHandshakeReuseWaiter()
         }
 

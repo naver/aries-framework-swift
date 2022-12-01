@@ -16,6 +16,6 @@ public struct PubkeyParser: Decodable {
             if let item = try? container.decodeIfPresent(EddsaSaSigSecp256k1.self) {
                 pubkeys.append(item)
             }
-        }            
+        }
     }
 }

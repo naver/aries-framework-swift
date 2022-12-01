@@ -10,7 +10,7 @@ public class ConnectionInvitationMessage: AgentMessage {
     var routingKeys: [String]?
     public static var type: String = "https://didcomm.org/connections/1.0/invitation"
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case label, imageUrl, did, recipientKeys, serviceEndpoint, routingKeys
     }
 

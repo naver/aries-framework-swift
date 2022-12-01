@@ -17,7 +17,7 @@ class AgentTest: XCTestCase {
 
         func onCredentialStateChanged(credentialRecord: CredentialExchangeRecord) {
             print("credential state changed to \(credentialRecord.state)")
-            if (credentialRecord.state == .Done) {
+            if credentialRecord.state == .Done {
                 expectation.fulfill()
             }
         }
@@ -121,11 +121,11 @@ class AgentTest: XCTestCase {
             }
             func onConnectionStateChanged(connectionRecord: ConnectionRecord) {
                 print("connection state changed to \(connectionRecord.state)")
-                if (connectionRecord.state == .Complete) {
+                if connectionRecord.state == .Complete {
                     connectionCount += 1
-                    if (connectionCount == 2) {
+                    if connectionCount == 2 {
                         expectation.fulfill()
-                    } else if (connectionCount == 3) {
+                    } else if connectionCount == 3 {
                         XCTFail("Too many connections")
                     }
                 }

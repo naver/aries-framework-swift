@@ -1,3 +1,4 @@
+// swiftlint:disable inclusive_language
 
 import Foundation
 import Indy
@@ -39,7 +40,7 @@ public class Wallet {
 
     func initialize() async throws {
         logger.info("Initializing wallet for \(self.agent.agentConfig.label)")
-        if (indyWallet != nil) {
+        if indyWallet != nil {
           logger.warning("Wallet already initialized.")
           try await close()
         }
@@ -48,7 +49,7 @@ public class Wallet {
         let wallet = IndyWallet.sharedInstance()!
 
         let userDefaults = UserDefaults.standard
-        if (!userDefaults.bool(forKey: walletExistKey)) {
+        if !userDefaults.bool(forKey: walletExistKey) {
             do {
                 walletCredentials = ["key": agent.agentConfig.walletKey, "key_derivation_method": "RAW"].toString()
                 try await wallet.createWallet(withConfig: walletConfig, credentials: walletCredentials)

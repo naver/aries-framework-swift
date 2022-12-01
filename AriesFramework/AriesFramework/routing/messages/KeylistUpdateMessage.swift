@@ -2,8 +2,8 @@
 import Foundation
 
 enum KeylistUpdateAction: String, Codable {
-    case add = "add"
-    case remove = "remove"
+    case add
+    case remove
 }
 
 struct KeylistUpdate: Codable {

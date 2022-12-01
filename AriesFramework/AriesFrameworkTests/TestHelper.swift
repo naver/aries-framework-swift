@@ -189,6 +189,7 @@ class TestHelper {
     static func makeConnection(_ agentA: Agent, _ agentB: Agent) async throws -> (ConnectionRecord, ConnectionRecord) {
         logger.debug("Making connection")
         let message = try await agentA.connections.createConnection()
+        // swiftlint:disable:next force_cast
         let invitation = message.payload as! ConnectionInvitationMessage
         var agentAConnection = message.connection
         var agentBConnection = try await agentB.connections.receiveInvitation(invitation)

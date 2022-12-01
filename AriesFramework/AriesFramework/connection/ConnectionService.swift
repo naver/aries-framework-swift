@@ -3,7 +3,7 @@ import Foundation
 import os
 
 public struct Routing {
-    let endpoints : [String]
+    let endpoints: [String]
     let verkey: String
     let did: String
     let routingKeys: [String]
@@ -201,7 +201,7 @@ public class ConnectionService {
             imageUrl: imageUrl ?? agent.agentConfig.connectionImageUrl,
             connection: Connection(did: connectionRecord.did, didDoc: connectionRecord.didDoc))
 
-        if (autoAcceptConnection != nil) {
+        if autoAcceptConnection != nil {
             connectionRecord.autoAcceptConnection = autoAcceptConnection
         }
         connectionRecord.threadId = connectionRequest.id
@@ -223,11 +223,11 @@ public class ConnectionService {
         let decoder = JSONDecoder()
         let message = try decoder.decode(ConnectionRequestMessage.self, from: Data(messageContext.plaintextMessage.utf8))
 
-        guard let recipientKey = messageContext.recipientVerkey, let _ = messageContext.senderVerkey else {
+        guard let recipientKey = messageContext.recipientVerkey, messageContext.senderVerkey != nil else {
             throw AriesFrameworkError.frameworkError("Unable to process connection request without senderVerkey or recipientVerkey")
         }
 
-        if (message.connection.didDoc == nil) {
+        if message.connection.didDoc == nil {
             throw AriesFrameworkError.frameworkError("Public DIDs are not supported yet")
         }
 
@@ -240,7 +240,7 @@ public class ConnectionService {
             }
         }
 
-        if (connectionRecord == nil || connectionRecord!.multiUseInvitation) {
+        if connectionRecord == nil || connectionRecord!.multiUseInvitation {
             connectionRecord = try await createConnection(
                 role: .Inviter,
                 state: .Invited,
@@ -330,7 +330,7 @@ public class ConnectionService {
 
         let signerVerkey = message.connectionSig.signer
         let invitationKey = connectionRecord.getTags()["invitationKey"]
-        if (signerVerkey != invitationKey) {
+        if signerVerkey != invitationKey {
             throw AriesFrameworkError.frameworkError("Connection object in connection response message is not signed with same key as recipient key in invitation expected=\(String(describing: invitationKey)) received=\(signerVerkey)")
         }
 
@@ -359,7 +359,7 @@ public class ConnectionService {
         assert(connectionRecord.state == ConnectionState.Responded || connectionRecord.state == ConnectionState.Complete)
         let trustPing = TrustPingMessage(comment: comment, responseRequested: responseRequested ?? true)
 
-        if (connectionRecord.state != ConnectionState.Complete) {
+        if connectionRecord.state != ConnectionState.Complete {
             try await updateState(connectionRecord: &connectionRecord, newState: ConnectionState.Complete)
         }
 
@@ -369,14 +369,14 @@ public class ConnectionService {
     func updateState(connectionRecord: inout ConnectionRecord, newState: ConnectionState) async throws {
         connectionRecord.state = newState
         try await self.connectionRepository.update(connectionRecord)
-        if (newState == ConnectionState.Complete) {
+        if newState == ConnectionState.Complete {
             finishConnectionWaiter()
         }
         agent.agentDelegate?.onConnectionStateChanged(connectionRecord: connectionRecord)
     }
 
     func fetchState(connectionRecord: ConnectionRecord) async throws -> ConnectionState {
-        if (connectionRecord.state == ConnectionState.Complete) {
+        if connectionRecord.state == ConnectionState.Complete {
             return connectionRecord.state
         }
 
@@ -395,7 +395,7 @@ public class ConnectionService {
         let connections = await self.connectionRepository.findByQuery("""
             {"invitationKey": "\(key)"}
             """)
-        if (connections.count == 0) {
+        if connections.count == 0 {
             return nil
         }
         return connections[0]

@@ -3,7 +3,7 @@ import Foundation
 
 public struct CredentialPreviewAttribute {
     public var name: String
-    public var mimeType: String? = nil
+    public var mimeType: String?
     public var value: String
 }
 

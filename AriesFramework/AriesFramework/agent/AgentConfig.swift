@@ -87,6 +87,6 @@ public struct AgentConfig {
 
     /// The endpoints of the agent. Read only.
     public var endpoints: [String] {
-        get { return agentEndpoints ?? [DID_COMM_TRANSPORT_QUEUE] }
+        return agentEndpoints ?? [DID_COMM_TRANSPORT_QUEUE]
     }
 }

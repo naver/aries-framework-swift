@@ -25,4 +25,4 @@ public class MediationRequestMessage: AgentMessage {
         try container.encode(sentTime, forKey: .sentTime)
         try super.encode(to: encoder)
     }
-} 
+}

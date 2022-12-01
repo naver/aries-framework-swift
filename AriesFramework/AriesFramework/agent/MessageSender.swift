@@ -4,7 +4,7 @@ import os
 
 public class MessageSender {
     let agent: Agent
-    var defaultOutboundTransport: OutboundTransport? = nil
+    var defaultOutboundTransport: OutboundTransport?
     let httpOutboundTransport: HttpOutboundTransport
     let wsOutboundTransport: WsOutboundTransport
     let logger = Logger(subsystem: "AriesFramework", category: "MessageSender")
@@ -22,7 +22,7 @@ public class MessageSender {
     func outboundTransportForEndpoint(_ endpoint: String) -> OutboundTransport? {
         if defaultOutboundTransport != nil {
             return defaultOutboundTransport
-        } else if (endpoint.hasPrefix("http://") || endpoint.hasPrefix("https://")) {
+        } else if endpoint.hasPrefix("http://") || endpoint.hasPrefix("https://") {
             return httpOutboundTransport
         } else if endpoint.hasPrefix("ws://") || endpoint.hasPrefix("wss://") {
             return wsOutboundTransport
@@ -64,7 +64,7 @@ public class MessageSender {
     }
 
     func findDidCommServices(connection: ConnectionRecord) throws -> [DidDocService] {
-        if ((connection.theirDidDoc) != nil) {
+        if (connection.theirDidDoc) != nil {
             return connection.theirDidDoc!.didCommServices()
         }
 

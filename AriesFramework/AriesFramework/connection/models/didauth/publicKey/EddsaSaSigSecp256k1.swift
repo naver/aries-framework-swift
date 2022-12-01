@@ -7,10 +7,10 @@ public struct EddsaSaSigSecp256k1: Codable, PublicKey {
     var type: String = "Secp256k1VerificationKey2018"
     var publicKeyHex: String
     var value: String? {
-        get { return publicKeyHex }
+        return publicKeyHex
     }
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case id, controller, type, publicKeyHex
     }
 }

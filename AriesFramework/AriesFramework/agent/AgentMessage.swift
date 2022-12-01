@@ -8,12 +8,10 @@ public class AgentMessage: Codable {
     var transport: TransportDecorator?
 
     var threadId: String {
-        get {
-            return thread?.threadId ?? id
-        }
+        return thread?.threadId ?? id
     }
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case id = "@id", type = "@type", thread = "~thread", transport = "~transport"
     }
 
@@ -36,6 +34,7 @@ public class AgentMessage: Codable {
 
     public func toJsonString() -> String {
         let encoder = JSONEncoder()
+        // swiftlint:disable:next force_try
         let data = try! encoder.encode(self)
         return String(data: data, encoding: .utf8)!
     }

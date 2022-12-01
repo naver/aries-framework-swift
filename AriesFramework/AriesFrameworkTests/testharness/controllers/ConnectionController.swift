@@ -1,3 +1,4 @@
+// swiftlint:disable cyclomatic_complexity
 
 import Foundation
 import Criollo
@@ -69,6 +70,7 @@ class ConnectionController: CRRouteController {
             Task {
                 do {
                     let message = try await self.agent!.connections.createConnection()
+                    // swiftlint:disable:next force_cast
                     ControllerUtils.send(res: res, data: CreateInvitationResponse(connectionId: message.connection.id, invitation: message.payload as! ConnectionInvitationMessage))
                 } catch {
                     print("Error: \(error)")
@@ -81,7 +83,7 @@ class ConnectionController: CRRouteController {
         self.post("/receive-invitation") { (req, res, next) in
             Task {
                 do {
-                    let data = try! JSONSerialization.data(withJSONObject: req.body!, options: [])
+                    let data = try JSONSerialization.data(withJSONObject: req.body!, options: [])
                     let request = try JSONDecoder().decode(ReceiveInvitationRequest.self, from: data)
                     let connection = try await self.agent!.connections.receiveInvitation(request.data)
                     ControllerUtils.send(res: res, data: self.mapConnection(connection))
@@ -96,8 +98,10 @@ class ConnectionController: CRRouteController {
         self.post("/accept-invitation") { (req, res, next) in
             Task {
                 do {
-                    let body = req.body as! [String: Any]
-                    let id = body["id"] as! String
+                    let body = req.body as? [String: Any]
+                    guard let id = body?["id"] as? String else {
+                        throw AriesFrameworkError.frameworkError("Cannot parse id from request body")
+                    }
                     let connection = try await self.agent!.connectionRepository.getById(id)
                     ControllerUtils.send(res: res, data: self.mapConnection(connection))
                 } catch {
@@ -111,8 +115,10 @@ class ConnectionController: CRRouteController {
         self.post("/accept-request") { (req, res, next) in
             Task {
                 do {
-                    let body = req.body as! [String: Any]
-                    let id = body["id"] as! String
+                    let body = req.body as? [String: Any]
+                    guard let id = body?["id"] as? String else {
+                        throw AriesFrameworkError.frameworkError("Cannot parse id from request body")
+                    }
                     let connection = try await self.agent!.connectionRepository.getById(id)
                     ControllerUtils.send(res: res, data: self.mapConnection(connection))
                 } catch {
@@ -127,8 +133,10 @@ class ConnectionController: CRRouteController {
         self.post("/send-ping") { (req, res, next) in
             Task {
                 do {
-                    let body = req.body as! [String: Any]
-                    let id = body["id"] as! String
+                    let body = req.body as? [String: Any]
+                    guard let id = body?["id"] as? String else {
+                        throw AriesFrameworkError.frameworkError("Cannot parse id from request body")
+                    }
                     let connection = try await self.agent!.connectionRepository.getById(id)
                     ControllerUtils.send(res: res, data: self.mapConnection(connection))
                 } catch {

@@ -186,7 +186,7 @@ class MediationRecipient {
     }
 
     func processBatchMessage(messageContext: InboundMessageContext) async throws {
-        if (messageContext.connection == nil) {
+        if messageContext.connection == nil {
             throw AriesFrameworkError.frameworkError("No connection associated with incoming message with id \(messageContext.message.id)")
         }
 
@@ -208,9 +208,9 @@ class MediationRecipient {
         let decoder = JSONDecoder()
         let message = try decoder.decode(KeylistUpdateResponseMessage.self, from: Data(messageContext.plaintextMessage.utf8))
         for update in message.updated {
-            if (update.action == .add) {
+            if update.action == .add {
                 logger.info("Key \(update.recipientKey) added to keylist")
-            } else if (update.action == .remove) {
+            } else if update.action == .remove {
                 logger.info("Key \(update.recipientKey) removed from keylist")
             }
         }
@@ -227,7 +227,7 @@ class MediationRecipient {
         keylistUpdateDone = false
         try await agent.messageSender.send(message: message)
 
-        if (!keylistUpdateDone) {
+        if !keylistUpdateDone {
             let result = try await keylistWaiter.wait()
             if !result {
                 throw AriesFrameworkError.frameworkError("Keylist update timed out")

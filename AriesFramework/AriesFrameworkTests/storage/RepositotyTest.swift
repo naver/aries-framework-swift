@@ -3,7 +3,6 @@ import XCTest
 import Indy
 @testable import AriesFramework
 
-
 class RepositotyTest: XCTestCase {
     var agent: Agent!
     var repository: Repository<TestRecord>!
@@ -24,7 +23,7 @@ class RepositotyTest: XCTestCase {
 
     func insertRecord(id: String? = nil, tags: Tags? = nil) async -> TestRecord {
         let record = TestRecord(id: id, tags: tags ?? ["myTag": "foobar"], foo: "bar")
-        try! await repository.save(record)
+        try? await repository.save(record)
         return record
     }
 
@@ -133,7 +132,7 @@ class RepositotyTest: XCTestCase {
         let record2 = try await repository.findSingleByQuery("{\"myTag\": \"notfound\"}")
         XCTAssertNil(record2)
 
-        _ = await insertRecord(tags: ["myTag": "foobar"]) //Insert duplicate tags
+        _ = await insertRecord(tags: ["myTag": "foobar"]) // Insert duplicate tags
         do {
             _ = try await repository.findSingleByQuery("{\"myTag\": \"foobar\"}")
             XCTFail("Should throw error when more than one record found")

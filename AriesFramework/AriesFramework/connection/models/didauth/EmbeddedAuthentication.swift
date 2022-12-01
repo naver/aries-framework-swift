@@ -19,7 +19,7 @@ public struct EmbeddedAuthentication: Codable {
         case "Secp256k1VerificationKey2018":
             publicKey = try EddsaSaSigSecp256k1(from: decoder)
         default:
-            throw DecodingError.dataCorruptedError(forKey:.type, in: container, debugDescription: "Unable to decode EmbeddedAuthentication")
+            throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unable to decode EmbeddedAuthentication")
         }
     }
 

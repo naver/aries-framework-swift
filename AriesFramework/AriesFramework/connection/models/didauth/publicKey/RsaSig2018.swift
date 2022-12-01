@@ -7,10 +7,10 @@ public struct RsaSig2018: Codable, PublicKey {
     var type: String = "RsaVerificationKey2018"
     var publicKeyPem: String
     var value: String? {
-        get { return publicKeyPem }
+        return publicKeyPem
     }
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case id, controller, type, publicKeyPem
     }
 }

@@ -5,7 +5,7 @@ public class PresentationAckMessage: AgentMessage {
     public static var type: String = "https://didcomm.org/present-proof/1.0/ack"
     var status: AckStatus
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case status
     }
 

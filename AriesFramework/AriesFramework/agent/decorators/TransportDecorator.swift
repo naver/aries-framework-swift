@@ -2,7 +2,7 @@
 import Foundation
 public struct TransportDecorator {
     var returnRoute: String?
-    var returnRouteThread: String? = nil
+    var returnRouteThread: String?
 }
 
 extension TransportDecorator: Codable {

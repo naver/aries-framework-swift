@@ -39,7 +39,7 @@ class OutOfBandServiceTest: XCTestCase {
             state: OutOfBandState.AwaitResponse,
             reusable: true)
         try await agent.outOfBandRepository.save(mockOob)
-        
+
         class TestDelegate: AgentDelegate {
             let expectation: XCTestExpectation
             init(expectation: XCTestExpectation) {

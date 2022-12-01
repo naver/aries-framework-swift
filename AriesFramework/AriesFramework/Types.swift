@@ -5,11 +5,13 @@ public typealias Tags = [String: String]
 
 public extension Tags {
     static func stringFromArray(_ array: [String]) -> String? {
-        return String(data:try! JSONEncoder().encode(array), encoding: .utf8) ?? nil
+        // swiftlint:disable:next force_try
+        return String(data: try! JSONEncoder().encode(array), encoding: .utf8) ?? nil
     }
 
     func toString() -> String {
-        return String(data:try! JSONEncoder().encode(self), encoding: .utf8) ?? "{}"
+        // swiftlint:disable:next force_try
+        return String(data: try! JSONEncoder().encode(self), encoding: .utf8) ?? "{}"
     }
 }
 
@@ -33,9 +35,9 @@ public extension String {
     }
 }
 
-public extension Array
-{
+public extension Array {
     func toString() -> String {
+        // swiftlint:disable:next force_try
         let jsonData = try! JSONSerialization.data(withJSONObject: self)
         return String(data: jsonData, encoding: .utf8) ?? "[]"
     }
@@ -47,9 +49,9 @@ public enum DidCommMimeType: String {
 }
 
 public enum AckStatus: String, Codable {
-    case OK = "OK"
-    case FAIL = "FAIL"
-    case PENDING = "PENDING"
+    case OK
+    case FAIL
+    case PENDING
 }
 
 public struct OutboundPackage: Codable {

@@ -5,7 +5,7 @@ public class ConnectionResponseMessage: AgentMessage {
     var connectionSig: SignatureDecorator
     public static var type: String = "https://didcomm.org/connections/1.0/response"
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case connectionSig = "connection~sig"
     }
 
@@ -26,4 +26,3 @@ public class ConnectionResponseMessage: AgentMessage {
         try super.encode(to: encoder)
     }
 }
-

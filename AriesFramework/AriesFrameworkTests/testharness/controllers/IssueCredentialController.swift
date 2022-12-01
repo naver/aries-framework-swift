@@ -59,7 +59,7 @@ class IssueCredentialController: CRRouteController {
         self.post("/send-proposal") { (req, res, next) in
             Task {
                 do {
-                    let data = try! JSONSerialization.data(withJSONObject: req.body!, options: [])
+                    let data = try JSONSerialization.data(withJSONObject: req.body!, options: [])
                     let requestBody = try JSONDecoder().decode(ProposeRequest.self, from: data)
                     let request = requestBody.data
                     let connection = try await self.agent!.connectionRepository.getById(request.connectionId)
@@ -94,8 +94,10 @@ class IssueCredentialController: CRRouteController {
         self.post("/send-request") { (req, res, next) in
             Task {
                 do {
-                    let body = req.body as! [String: Any]
-                    let id = body["id"] as! String
+                    let body = req.body as? [String: Any]
+                    guard let id = body?["id"] as? String else {
+                        throw AriesFrameworkError.frameworkError("Cannot parse id from request body")
+                    }
                     var credential = try await self.agent!.credentialRepository.getByThreadAndConnectionId(threadId: id, connectionId: nil)
                     credential = try await self.agent!.credentials.acceptOffer(options: AcceptOfferOptions(credentialRecordId: credential.id))
                     ControllerUtils.send(res: res, data: self.mapCredential(credential))
@@ -110,8 +112,10 @@ class IssueCredentialController: CRRouteController {
         self.post("/store") { (req, res, next) in
             Task {
                 do {
-                    let body = req.body as! [String: Any]
-                    let id = body["id"] as! String
+                    let body = req.body as? [String: Any]
+                    guard let id = body?["id"] as? String else {
+                        throw AriesFrameworkError.frameworkError("Cannot parse id from request body")
+                    }
                     var credential = try await self.agent!.credentialRepository.getByThreadAndConnectionId(threadId: id, connectionId: nil)
                     credential = try await self.agent!.credentials.acceptCredential(options: AcceptCredentialOptions(credentialRecordId: credential.id))
                     ControllerUtils.send(res: res, data: self.mapCredential(credential))

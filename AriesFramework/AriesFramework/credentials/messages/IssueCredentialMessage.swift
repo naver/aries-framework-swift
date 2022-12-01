@@ -8,7 +8,7 @@ public class IssueCredentialMessage: AgentMessage {
     public var comment: String?
     public var credentialAttachments: [Attachment]
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case comment, credentialAttachments = "credentials~attach"
     }
 

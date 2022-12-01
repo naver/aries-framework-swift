@@ -43,14 +43,14 @@ public class Repository<T: BaseRecord & Codable> {
     public func save(_ record: T) async throws {
         let value = try JSONEncoder().encode(record)
         let tags = record.getTags().toString()
-        try await IndyNonSecrets.addRecord(inWallet: wallet.handle!, type: T.type, id: record.id, value: String(data:value, encoding: .utf8), tagsJson: tags)
+        try await IndyNonSecrets.addRecord(inWallet: wallet.handle!, type: T.type, id: record.id, value: String(data: value, encoding: .utf8), tagsJson: tags)
     }
 
     public func update(_ record: T) async throws {
         let value = try JSONEncoder().encode(record)
         let tags = record.getTags().toString()
         try await IndyNonSecrets.updateRecordTags(inWallet: wallet.handle!, type: T.type, id: record.id, tagsJson: tags)
-        try await IndyNonSecrets.updateRecordValue(inWallet: wallet.handle!, type: T.type, id: record.id, value: String(data:value, encoding: .utf8))
+        try await IndyNonSecrets.updateRecordValue(inWallet: wallet.handle!, type: T.type, id: record.id, value: String(data: value, encoding: .utf8))
     }
 
     public func delete(_ record: T) async throws {
@@ -81,7 +81,7 @@ public class Repository<T: BaseRecord & Codable> {
         let handle = try await IndyNonSecrets.openSearch(inWallet: wallet.handle!, type: type, queryJson: query, optionsJson: DEFAULT_QUERY_OPTIONS)
         var recordJson: String?
         do {
-            recordJson = try await IndyNonSecrets.fetchNextRecords(fromSearch:handle, walletHandle: wallet.handle!, count: limit as NSNumber)
+            recordJson = try await IndyNonSecrets.fetchNextRecords(fromSearch: handle, walletHandle: wallet.handle!, count: limit as NSNumber)
         } catch {
             logger.error("Fetch records failed: \(error.localizedDescription)")
             try await IndyNonSecrets.closeSearch(withHandle: handle)

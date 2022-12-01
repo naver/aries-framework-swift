@@ -10,9 +10,7 @@ struct TestRecord: BaseRecord {
 
     public static let type = "TestRecord"
     var type: String {
-        get {
-            return TestRecord.type
-        }
+        return TestRecord.type
     }
 }
 

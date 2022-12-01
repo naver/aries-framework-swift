@@ -5,7 +5,7 @@ public class CredentialAckMessage: AgentMessage {
     public static var type: String = "https://didcomm.org/issue-credential/1.0/ack"
     var status: AckStatus
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case status
     }
 

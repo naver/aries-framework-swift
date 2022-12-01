@@ -6,7 +6,7 @@ public class TrustPingMessage: AgentMessage {
     var comment: String?
     var responseRequested: Bool = false
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case comment = "comment", responseRequested = "response_requested"
     }
 

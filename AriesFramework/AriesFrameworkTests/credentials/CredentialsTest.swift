@@ -1,3 +1,4 @@
+// swiftlint:disable force_cast
 
 import XCTest
 @testable import AriesFramework
@@ -30,7 +31,7 @@ class CredentialsTest: XCTestCase {
         let credentialRecord = try await agent.credentialRepository.getByThreadAndConnectionId(threadId: threadId, connectionId: nil)
         return credentialRecord
     }
-    
+
     func testCredentialOffer() async throws {
         // Faber starts with credential offer to Alice.
         var faberCredentialRecord = try await faberAgent.credentials.offerCredential(

@@ -12,7 +12,7 @@ class ConnectionResponseHandler: MessageHandler {
     func handle(messageContext: InboundMessageContext) async throws -> OutboundMessage? {
         let connection = try await agent.connectionService.processResponse(messageContext: messageContext)
 
-        if (connection.autoAcceptConnection ?? agent.agentConfig.autoAcceptConnections) {
+        if connection.autoAcceptConnection ?? agent.agentConfig.autoAcceptConnections {
             return try await agent.connectionService.createTrustPing(connectionId: connection.id, responseRequested: false)
         }
 

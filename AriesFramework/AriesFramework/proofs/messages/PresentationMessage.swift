@@ -8,7 +8,7 @@ public class PresentationMessage: AgentMessage {
     public var comment: String?
     public var presentationAttachments: [Attachment]
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case comment, presentationAttachments = "presentations~attach"
     }
 

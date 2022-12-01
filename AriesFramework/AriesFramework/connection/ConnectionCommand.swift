@@ -70,7 +70,7 @@ public class ConnectionCommand {
             routing: agent.mediationRecipient.getRouting(),
             autoAcceptConnection: autoAcceptConnection,
             alias: alias)
-        if (connection.autoAcceptConnection ?? agent.agentConfig.autoAcceptConnections) {
+        if connection.autoAcceptConnection ?? agent.agentConfig.autoAcceptConnections {
             connection = try await acceptInvitation(connectionId: connection.id, autoAcceptConnection: autoAcceptConnection)
         }
         return connection
