@@ -223,7 +223,7 @@ public class ConnectionService {
         let decoder = JSONDecoder()
         let message = try decoder.decode(ConnectionRequestMessage.self, from: Data(messageContext.plaintextMessage.utf8))
 
-        guard let recipientKey = messageContext.recipientVerkey, messageContext.senderVerkey != nil else {
+        guard let recipientKey = messageContext.recipientVerkey, let senderKey = messageContext.senderVerkey else {
             throw AriesFrameworkError.frameworkError("Unable to process connection request without senderVerkey or recipientVerkey")
         }
 
@@ -231,12 +231,17 @@ public class ConnectionService {
             throw AriesFrameworkError.frameworkError("Public DIDs are not supported yet")
         }
 
-        var connectionRecord = await findByInvitationKey(recipientKey)
+        var connectionRecord = try await findByKeys(senderKey: senderKey, recipientKey: recipientKey)
         var outOfBandRecord: OutOfBandRecord?
         if connectionRecord == nil {
-            outOfBandRecord = try await agent.outOfBandService.findByInvitationKey(recipientKey)
-            if outOfBandRecord == nil {
-                throw AriesFrameworkError.frameworkError("No out-of-band record found for invitation key: \(recipientKey)")
+            let outOfBandRecords = await agent.outOfBandService.findAllByInvitationKey(recipientKey)
+            if outOfBandRecords.isEmpty {
+                connectionRecord = await findByInvitationKey(recipientKey)
+                if connectionRecord == nil {
+                    throw AriesFrameworkError.frameworkError("No out-of-band record or connection record found for invitation key: \(recipientKey)")
+                }
+            } else {
+                outOfBandRecord = outOfBandRecords[0]
             }
         }
 

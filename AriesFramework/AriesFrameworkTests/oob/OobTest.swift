@@ -30,9 +30,9 @@ class OobTest: XCTestCase {
     }
 
     override func tearDown() async throws {
-        try await super.tearDown()
         try await faberAgent.reset()
         try await aliceAgent.reset()
+        try await super.tearDown()
     }
 
     func prepareForCredentialTest() async throws -> CreateOfferOptions {
@@ -40,6 +40,10 @@ class OobTest: XCTestCase {
         let faberConfig = try TestHelper.getBaseConfig(name: "faber", useLedgerSerivce: true)
         faberAgent = Agent(agentConfig: faberConfig, agentDelegate: nil)
         try await faberAgent.initialize()
+
+        // faberAgent has changed, so reset SubjectOutboundTransports.
+        faberAgent.setOutboundTransport(SubjectOutboundTransport(subject: aliceAgent))
+        aliceAgent.setOutboundTransport(SubjectOutboundTransport(subject: faberAgent))
 
         let credDefId = try await TestHelper.prepareForIssuance(faberAgent, ["name", "age"])
         return CreateOfferOptions(
