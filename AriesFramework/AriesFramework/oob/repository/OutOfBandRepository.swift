@@ -6,8 +6,8 @@ class OutOfBandRepository: Repository<OutOfBandRecord> {
         return try await findSingleByQuery("{\"invitationId\": \"\(invitationId)\"}")
     }
 
-    func findByInvitationKey(_ invitationKey: String) async throws -> OutOfBandRecord? {
-        return try await findSingleByQuery("{\"invitationKey\": \"\(invitationKey)\"}")
+    func findAllByInvitationKey(_ invitationKey: String) async -> [OutOfBandRecord] {
+        return await findByQuery("{\"invitationKey\": \"\(invitationKey)\"}")
     }
 
     func findByFingerprint(_ fingerprint: String) async throws -> OutOfBandRecord? {

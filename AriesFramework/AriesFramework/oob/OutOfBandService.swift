@@ -92,8 +92,8 @@ public class OutOfBandService {
         return try await outOfBandRepository.findByInvitationId(invitationId)
     }
 
-    public func findByInvitationKey(_ invitationKey: String) async throws -> OutOfBandRecord? {
-        return try await outOfBandRepository.findByInvitationKey(invitationKey)
+    public func findAllByInvitationKey(_ invitationKey: String) async -> [OutOfBandRecord] {
+        return await outOfBandRepository.findAllByInvitationKey(invitationKey)
     }
 
     public func findByFingerprint(_ fingerprint: String) async throws -> OutOfBandRecord? {
