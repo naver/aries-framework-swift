@@ -10,7 +10,7 @@
 - Encryption/Decryption of messages
 - Storage of data
 
-We use the forked version of [iOS wrapper](https://github.com/hyperledger/indy-sdk/tree/main/wrappers/ios) of Indy SDK to support Swift and to fix dependency issues such as OpenSSL. Because Indy SDK is available only as a CocoaPods pod, we distribute Aries Framework Swift through CocoaPods.
+We use the forked version of [iOS wrapper](https://github.com/hyperledger/indy-sdk/tree/main/wrappers/ios) of Indy SDK to support Swift and to fix dependency issues such as OpenSSL. Because Indy SDK is available only as a CocoaPods pod, we distribute Aries Framework Swift through CocoaPods. The [forked repo](https://github.com/naver/indy-sdk) of Indy SDK is also used as the base of podspecs.
 
 ### Other libraries
 
@@ -20,7 +20,7 @@ We use the forked version of [iOS wrapper](https://github.com/hyperledger/indy-s
 - [Base58Swift](https://github.com/keefertaylor/Base58Swift): Provides Base58 encoding/decoding used in `DIDParser` to handle [did:key](https://w3c-ccg.github.io/did-method-key/) in out-of-band invitation.
 - [Criollo](https://github.com/thecatalinstan/Criollo): Provides HTTP server that can be used in unit tests. We use this library to implement a backchannel for [AATH](https://github.com/hyperledger/aries-agent-test-harness).
 
-WebSockets and CollectionConcurrencyKit are distributed only as Swift packages, so we made CocoaPods podspecs for them in our private Spec repo.
+WebSockets and CollectionConcurrencyKit are distributed only as Swift packages, so we made CocoaPods podspecs for them in our private [Spec repo](https://github.com/naver/indy-sdk/tree/master/Specs).
 
 ## Framework Internals
 
@@ -60,11 +60,36 @@ Agents can specify `return-route` for messages using the [transport decorator](h
 
 ## Testing
 
+### XCode Unit Tests
+
+There are several types of unit tests:
+- AriesFrameworkTests: This is the default test plan. We can run it without any setup and it will finish in a second.
+- AllTests: This is the test plan for all the tests including credential tests, proof tests, and out-of-band tests. We need a local indy pool to run this test plan.
+- AgentTest: This test requires other agents to run. We run this test manually one by one.
+- AATHTest: This test is for AATH. See below for more details.
+
+### AllTests preparation
+
+`AllTests` plan requires a local indy pool. We need Docker Desktop or colima to run the pool.
+
+```bash
+$ git clone https://github.com/naver/indy-sdk.git
+$ cd indy-sdk
+$ docker build -f ci/indy-pool.dockerfile -t indy_pool .
+$ docker run -itd -p 9701-9708:9701-9708 indy_pool
+```
+
+Select `AriesFrameworkTests` scheme in XCode, select `AllTests` test plan in Test navigator and run the tests. You also can run it from the command line.
+
+```bash
+$ xcodebuild test -workspace AriesFramework.xcworkspace -scheme AriesFrameworkTests -destination 'platform=iOS Simulator,name=iPhone 14 Pro' -testPlan AllTests | xcpretty
+``` 
+
 ### AgentTest preparation
 
 `AgentTest` requires a mediator and another agent to offer credentials. We use Aries Framework Javascript for this purpose.
 
-First, we need to Indy SDK on the Mac.
+First, we need to install Indy SDK on Mac.
 ```bash
 $ brew tap conanoc/libindy
 $ brew install --build-from-source libindy
@@ -75,7 +100,7 @@ Clone the Aries Framework Javascript repository.
 git clone https://github.com/hyperledger/aries-framework-javascript.git
 ```
 
-Build and run the mediator.
+Build and run the mediator. It requires nodejs, yarn and npx.
 ```bash
 $ cd aries-framework-javascript
 $ yarn install

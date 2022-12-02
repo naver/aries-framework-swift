@@ -65,7 +65,7 @@ To create an agent, first create a key to encrypt the wallet and save it in the 
 ```swift
     import Indy
 
-    key = try await IndyWallet.generateKey(forConfig: nil)
+    let key = try await IndyWallet.generateKey(forConfig: nil)
 ```
 
 A genesis file for the indy pool should be included as a resource in the app bundle and get the path to it.
