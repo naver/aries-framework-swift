@@ -1,3 +1,8 @@
+# Notice
+
+We contributed this codebase to [hyperledger](https://www.hyperledger.org/) and repo has been moved to https://github.com/hyperledger/aries-framework-swift   
+This repo will not be updated.
+
 # Aries Framework Swift
 
 Aries Framework Swift is an iOS framework for [Aries](https://github.com/hyperledger/aries) protocol.
